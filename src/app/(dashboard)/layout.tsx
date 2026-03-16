@@ -1,18 +1,9 @@
 // Layout pour les pages protégées du dashboard (nécessite authentification)
-// La sidebar complète sera améliorée à l'étape 4 (Layout dashboard)
+// Sidebar fixe à gauche (desktop) + header en haut + nav mobile
 
-import Link from 'next/link'
-import { LogoutButton } from '@/components/layout/logout-button'
-
-const navItems = [
-  { href: '/feed', label: 'Feed' },
-  { href: '/keywords', label: 'Keywords' },
-  { href: '/subreddits', label: 'Subreddits' },
-  { href: '/templates', label: 'Templates' },
-  { href: '/analytics', label: 'Analytics' },
-  { href: '/settings', label: 'Settings' },
-  { href: '/billing', label: 'Billing' },
-]
+import { Sidebar } from '@/components/layout/sidebar'
+import { Header } from '@/components/layout/header'
+import { MobileNav } from '@/components/layout/mobile-nav'
 
 export default function DashboardLayout({
   children,
@@ -21,25 +12,24 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar temporaire — sera améliorée à l'étape 4 */}
-      <aside className="flex w-56 flex-col border-r bg-muted/30 p-4">
-        <Link href="/feed" className="mb-6 text-lg font-bold">
-          Sub<span className="text-primary">Huntr</span>
-        </Link>
-        <nav className="flex flex-1 flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <LogoutButton />
-      </aside>
-      <main className="flex-1 p-6">{children}</main>
+      {/* Sidebar — visible uniquement sur desktop */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+
+      {/* Zone principale : header + contenu */}
+      <div className="flex flex-1 flex-col">
+        <header className="flex h-14 items-center border-b px-4 md:px-6">
+          {/* Menu hamburger — visible uniquement sur mobile */}
+          <MobileNav />
+          {/* Le header async avec user info est côté droit */}
+          <div className="flex-1">
+            <Header />
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 md:p-6">{children}</main>
+      </div>
     </div>
   )
 }
