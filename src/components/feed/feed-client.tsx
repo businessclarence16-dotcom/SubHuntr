@@ -1,4 +1,4 @@
-// Composant client du Feed — bouton scan, filtres et liste de posts
+// Composant client du Feed — bouton scan, filtres, tri et liste de posts avec actions
 
 'use client'
 
@@ -14,7 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, RefreshCw, ArrowUpRight, MessageSquare, ThumbsUp } from 'lucide-react'
+import {
+  Loader2,
+  RefreshCw,
+  ArrowUpRight,
+  MessageSquare,
+  ThumbsUp,
+  Bookmark,
+  SkipForward,
+  Reply,
+  ArrowDownUp,
+} from 'lucide-react'
+import { ReplyDialog } from '@/components/feed/reply-dialog'
 
 interface Post {
   id: string
@@ -40,13 +51,19 @@ interface FeedClientProps {
   subreddits: string[]
 }
 
-export function FeedClient({ projectId, projectName, posts, keywords, subreddits }: FeedClientProps) {
+type SortOption = 'date' | 'score' | 'relevance' | 'comments'
+
+export function FeedClient({ projectId, projectName, posts: initialPosts, keywords, subreddits }: FeedClientProps) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState<string | null>(null)
   const [filterKeyword, setFilterKeyword] = useState<string>('all')
   const [filterSubreddit, setFilterSubreddit] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<SortOption>('date')
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const [updatingPost, setUpdatingPost] = useState<string | null>(null)
+  const [replyPost, setReplyPost] = useState<Post | null>(null)
 
   async function handleScan() {
     setScanning(true)
@@ -75,13 +92,56 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
     }
   }
 
+  async function updatePostStatus(postId: string, status: string) {
+    setUpdatingPost(postId)
+    try {
+      const res = await fetch('/api/reddit/posts', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, status }),
+      })
+
+      if (res.ok) {
+        setPosts((prev) =>
+          prev.map((p) => (p.id === postId ? { ...p, status } : p))
+        )
+      }
+    } finally {
+      setUpdatingPost(null)
+    }
+  }
+
   // Applique les filtres
-  const filteredPosts = posts.filter((post) => {
-    if (filterKeyword !== 'all' && post.matched_keyword !== filterKeyword) return false
-    if (filterSubreddit !== 'all' && post.subreddit !== filterSubreddit) return false
-    if (filterStatus !== 'all' && post.status !== filterStatus) return false
-    return true
-  })
+  const filteredPosts = posts
+    .filter((post) => {
+      if (filterKeyword !== 'all' && post.matched_keyword !== filterKeyword) return false
+      if (filterSubreddit !== 'all' && post.subreddit !== filterSubreddit) return false
+      if (filterStatus !== 'all' && post.status !== filterStatus) return false
+      return true
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'score':
+          return b.score - a.score
+        case 'relevance':
+          return (b.relevance_score ?? 0) - (a.relevance_score ?? 0)
+        case 'comments':
+          return b.num_comments - a.num_comments
+        case 'date':
+        default:
+          return new Date(b.reddit_created_at).getTime() - new Date(a.reddit_created_at).getTime()
+      }
+    })
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'new': return 'Nouveau'
+      case 'replied': return 'Répondu'
+      case 'saved': return 'Sauvegardé'
+      case 'skipped': return 'Ignoré'
+      default: return status
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -109,7 +169,7 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
         </p>
       )}
 
-      {/* Filtres */}
+      {/* Filtres et tri */}
       <div className="flex flex-wrap gap-3">
         <Select value={filterKeyword} onValueChange={(v) => setFilterKeyword(v ?? 'all')}>
           <SelectTrigger className="w-[180px]">
@@ -147,6 +207,19 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
             <SelectItem value="skipped">Ignoré</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={sortBy} onValueChange={(v) => setSortBy((v as SortOption) ?? 'date')}>
+          <SelectTrigger className="w-[180px]">
+            <ArrowDownUp className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Trier par" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">Plus récent</SelectItem>
+            <SelectItem value="score">Meilleur score</SelectItem>
+            <SelectItem value="relevance">Plus pertinent</SelectItem>
+            <SelectItem value="comments">Plus commenté</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Liste des posts */}
@@ -163,7 +236,7 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
       ) : (
         <div className="space-y-3">
           {filteredPosts.map((post) => (
-            <Card key={post.id}>
+            <Card key={post.id} className={post.status === 'skipped' ? 'opacity-60' : ''}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
@@ -202,7 +275,7 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
                     <Badge variant="outline">Pertinence : {post.relevance_score}/10</Badge>
                   )}
                   <Badge variant={post.status === 'new' ? 'default' : 'secondary'}>
-                    {post.status === 'new' ? 'Nouveau' : post.status === 'replied' ? 'Répondu' : post.status === 'saved' ? 'Sauvegardé' : 'Ignoré'}
+                    {statusLabel(post.status)}
                   </Badge>
                   <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
@@ -213,10 +286,57 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
                     </span>
                   </div>
                 </div>
+
+                {/* Actions */}
+                <div className="mt-3 flex gap-2 border-t pt-3">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={updatingPost === post.id}
+                    onClick={() => setReplyPost(post)}
+                  >
+                    <Reply className="mr-1 h-3 w-3" />
+                    Répondre
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={updatingPost === post.id || post.status === 'saved'}
+                    onClick={() => updatePostStatus(post.id, 'saved')}
+                  >
+                    <Bookmark className="mr-1 h-3 w-3" />
+                    Sauvegarder
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={updatingPost === post.id || post.status === 'skipped'}
+                    onClick={() => updatePostStatus(post.id, 'skipped')}
+                  >
+                    <SkipForward className="mr-1 h-3 w-3" />
+                    Ignorer
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Dialog de réponse */}
+      {replyPost && (
+        <ReplyDialog
+          open={!!replyPost}
+          onOpenChange={(open) => { if (!open) setReplyPost(null) }}
+          post={replyPost}
+          onReplySent={() => {
+            setPosts((prev) =>
+              prev.map((p) => (p.id === replyPost.id ? { ...p, status: 'replied' } : p))
+            )
+            // Ouvre le post Reddit dans un nouvel onglet
+            window.open(replyPost.url, '_blank')
+          }}
+        />
       )}
     </div>
   )
