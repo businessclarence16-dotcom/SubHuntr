@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getRedditClient } from '@/lib/reddit/client'
-import { checkScanLimit } from '@/lib/plan-limits'
+import { PLAN_LIMITS } from '@/constants/plans'
 import { Plan } from '@/types'
 
 interface RedditPost {
@@ -45,16 +45,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Projet non trouvé' }, { status: 404 })
   }
 
-  // Vérifie la limite de scans par jour
+  // Vérifie l'intervalle minimum entre scans selon le plan
   const { data: profile } = await supabase
     .from('users')
     .select('plan')
     .eq('id', user.id)
     .single()
 
-  const scanCheck = await checkScanLimit(supabase, projectId, (profile?.plan ?? 'free') as Plan)
-  if (!scanCheck.allowed) {
-    return NextResponse.json({ error: scanCheck.message, upgrade: true }, { status: 403 })
+  const userPlan = (profile?.plan ?? 'starter') as Plan
+  const limits = PLAN_LIMITS[userPlan]
+  const minInterval = limits.scanIntervalMinutes
+
+  const { data: lastScan } = await supabase
+    .from('scans')
+    .select('started_at')
+    .eq('project_id', projectId)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (lastScan) {
+    const elapsed = (Date.now() - new Date(lastScan.started_at).getTime()) / 60000
+    if (elapsed < minInterval) {
+      const wait = Math.ceil(minInterval - elapsed)
+      return NextResponse.json({
+        error: `Attendez encore ${wait} min avant le prochain scan (plan ${userPlan} : 1 scan / ${minInterval} min). Passez au plan supérieur pour scanner plus souvent.`,
+        upgrade: true,
+      }, { status: 403 })
+    }
   }
 
   // Récupère les keywords et subreddits actifs du projet

@@ -20,10 +20,10 @@ export function getStripe(): Stripe {
 }
 
 // Mapping plan → Stripe Price ID
-export function getPriceId(plan: 'pro' | 'business'): string {
+export function getPriceId(plan: 'growth' | 'agency'): string {
   const priceIds: Record<string, string | undefined> = {
-    pro: process.env.STRIPE_PRO_PRICE_ID,
-    business: process.env.STRIPE_BUSINESS_PRICE_ID,
+    growth: process.env.STRIPE_GROWTH_PRICE_ID,
+    agency: process.env.STRIPE_AGENCY_PRICE_ID,
   }
 
   const priceId = priceIds[plan]

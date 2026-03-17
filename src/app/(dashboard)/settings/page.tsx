@@ -33,7 +33,7 @@ export default async function SettingsPage() {
         id: user.id,
         email: user.email ?? '',
         fullName: profile?.full_name ?? '',
-        plan: profile?.plan ?? 'free',
+        plan: profile?.plan ?? 'starter',
       }}
       project={project ? {
         id: project.id,

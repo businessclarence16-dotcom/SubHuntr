@@ -11,7 +11,7 @@ create table public.users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   full_name text,
-  plan text not null default 'free' check (plan in ('free', 'pro', 'business')),
+  plan text not null default 'starter' check (plan in ('starter', 'growth', 'agency')),
   stripe_customer_id text,
   stripe_subscription_id text,
   created_at timestamptz not null default now(),

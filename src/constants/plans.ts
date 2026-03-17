@@ -6,44 +6,58 @@ export interface PlanLimits {
   projects: number
   keywordsPerProject: number
   subreddits: number
-  scansPerDay: number
-  aiRepliesPerMonth: number
+  scanIntervalMinutes: number
   csvExport: boolean
-  analytics: 'basic' | 'full' | 'full_api'
+  slackDiscord: boolean
+  competitorTracking: boolean
+  analytics: 'basic' | 'full'
+  prioritySupport: boolean
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  free: {
+  starter: {
     projects: 1,
-    keywordsPerProject: 3,
-    subreddits: 3,
-    scansPerDay: 1,
-    aiRepliesPerMonth: 10,
+    keywordsPerProject: 5,
+    subreddits: 15,
+    scanIntervalMinutes: 15,
     csvExport: false,
+    slackDiscord: false,
+    competitorTracking: false,
     analytics: 'basic',
+    prioritySupport: false,
   },
-  pro: {
-    projects: 5,
-    keywordsPerProject: 20,
-    subreddits: 20,
-    scansPerDay: 12,
-    aiRepliesPerMonth: 100,
-    csvExport: true,
+  growth: {
+    projects: 3,
+    keywordsPerProject: 25,
+    subreddits: 75,
+    scanIntervalMinutes: 5,
+    csvExport: false,
+    slackDiscord: true,
+    competitorTracking: true,
     analytics: 'full',
+    prioritySupport: false,
   },
-  business: {
-    projects: Infinity,
+  agency: {
+    projects: 10,
     keywordsPerProject: Infinity,
     subreddits: Infinity,
-    scansPerDay: Infinity,
-    aiRepliesPerMonth: Infinity,
+    scanIntervalMinutes: 2,
     csvExport: true,
-    analytics: 'full_api',
+    slackDiscord: true,
+    competitorTracking: true,
+    analytics: 'full',
+    prioritySupport: true,
   },
 }
 
 export const PLAN_PRICES: Record<Plan, number> = {
-  free: 0,
-  pro: 29,
-  business: 79,
+  starter: 29,
+  growth: 79,
+  agency: 149,
+}
+
+export const PLAN_LABELS: Record<Plan, string> = {
+  starter: 'Starter',
+  growth: 'Growth',
+  agency: 'Agency',
 }

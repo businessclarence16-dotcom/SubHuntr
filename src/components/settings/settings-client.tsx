@@ -202,12 +202,12 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge variant="default" className="text-sm">
-                  {user.plan === 'free' ? 'Free' : user.plan === 'pro' ? 'Pro' : 'Business'}
+                <Badge variant="default" className="text-sm capitalize">
+                  {user.plan}
                 </Badge>
-                {user.plan === 'free' && (
+                {user.plan === 'starter' && (
                   <span className="text-sm text-muted-foreground">
-                    Passez à Pro pour débloquer plus de fonctionnalités
+                    Passez à Growth pour débloquer plus de fonctionnalités
                   </span>
                 )}
               </div>

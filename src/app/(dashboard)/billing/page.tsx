@@ -1,8 +1,9 @@
-// Page Billing — plan actuel, upgrade, gestion abonnement
+// Page Billing — plan actuel et upgrade
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BillingClient } from '@/components/billing/billing-client'
+import { Plan } from '@/types'
 
 export default async function BillingPage() {
   const supabase = await createClient()
@@ -12,14 +13,13 @@ export default async function BillingPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('plan, stripe_customer_id, stripe_subscription_id')
+    .select('plan')
     .eq('id', user.id)
     .single()
 
   return (
     <BillingClient
-      plan={(profile?.plan ?? 'free') as 'free' | 'pro' | 'business'}
-      hasSubscription={!!profile?.stripe_subscription_id}
+      plan={(profile?.plan ?? 'starter') as Plan}
     />
   )
 }

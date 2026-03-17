@@ -18,7 +18,7 @@ export async function Header() {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Récupérer le profil utilisateur pour le plan
-  let plan = 'free'
+  let plan = 'starter'
   let fullName = ''
   if (user) {
     const { data: profile } = await supabase
@@ -26,7 +26,7 @@ export async function Header() {
       .select('plan, full_name')
       .eq('id', user.id)
       .single()
-    plan = profile?.plan ?? 'free'
+    plan = profile?.plan ?? 'starter'
     fullName = profile?.full_name ?? ''
   }
 

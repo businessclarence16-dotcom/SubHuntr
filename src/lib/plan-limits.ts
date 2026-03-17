@@ -70,7 +70,6 @@ export async function checkProjectLimit(
   userPlan: Plan
 ): Promise<LimitCheck> {
   const limits = PLAN_LIMITS[userPlan]
-  if (limits.projects === Infinity) return { allowed: true }
 
   const { count } = await supabase
     .from('projects')
@@ -88,33 +87,4 @@ export async function checkProjectLimit(
   }
 
   return { allowed: true, current, limit: limits.projects }
-}
-
-export async function checkScanLimit(
-  supabase: SupabaseClient,
-  projectId: string,
-  userPlan: Plan
-): Promise<LimitCheck> {
-  const limits = PLAN_LIMITS[userPlan]
-  if (limits.scansPerDay === Infinity) return { allowed: true }
-
-  // Compte les scans des dernières 24h
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const { count } = await supabase
-    .from('scans')
-    .select('*', { count: 'exact', head: true })
-    .eq('project_id', projectId)
-    .gte('started_at', yesterday)
-
-  const current = count ?? 0
-  if (current >= limits.scansPerDay) {
-    return {
-      allowed: false,
-      message: `Limite de ${limits.scansPerDay} scan(s) par jour atteinte (plan ${userPlan}). Passez au plan supérieur.`,
-      current,
-      limit: limits.scansPerDay,
-    }
-  }
-
-  return { allowed: true, current, limit: limits.scansPerDay }
 }

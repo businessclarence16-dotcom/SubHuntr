@@ -77,13 +77,13 @@ export async function POST(request: NextRequest) {
       if (user) {
         // Détermine le plan par le price ID
         const priceId = subscription.items.data[0]?.price.id
-        let plan = 'free'
-        if (priceId === process.env.STRIPE_PRO_PRICE_ID) plan = 'pro'
-        if (priceId === process.env.STRIPE_BUSINESS_PRICE_ID) plan = 'business'
+        let plan = 'starter'
+        if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) plan = 'growth'
+        if (priceId === process.env.STRIPE_AGENCY_PRICE_ID) plan = 'agency'
 
-        // Si l'abonnement est annulé, revient à free
+        // Si l'abonnement est annulé, revient à starter
         if (subscription.cancel_at_period_end || subscription.status !== 'active') {
-          plan = 'free'
+          plan = 'starter'
         }
 
         await supabase
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         await supabase
           .from('users')
           .update({
-            plan: 'free',
+            plan: 'starter',
             stripe_subscription_id: null,
             updated_at: new Date().toISOString(),
           })
