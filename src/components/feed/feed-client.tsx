@@ -26,6 +26,7 @@ import {
   ArrowDownUp,
 } from 'lucide-react'
 import { ReplyDialog } from '@/components/feed/reply-dialog'
+import { UpgradeNudge } from '@/components/shared/upgrade-nudge'
 
 interface Post {
   id: string
@@ -64,6 +65,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   const [posts, setPosts] = useState<Post[]>(initialPosts)
   const [updatingPost, setUpdatingPost] = useState<string | null>(null)
   const [replyPost, setReplyPost] = useState<Post | null>(null)
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   async function handleScan() {
     setScanning(true)
@@ -80,6 +82,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
 
       if (!res.ok) {
         setScanResult(`Erreur : ${data.error}`)
+        if (data.upgrade) setShowUpgrade(true)
       } else {
         const mockNote = data.mock ? ' (mode demo — configurez les clés Reddit pour des vrais posts)' : ''
         setScanResult(`Scan terminé ! ${data.postsFound} nouveau(x) post(s) trouvé(s).${mockNote}`)
@@ -167,6 +170,14 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         <p className={`text-sm ${scanResult.startsWith('Erreur') ? 'text-destructive' : 'text-green-600'}`}>
           {scanResult}
         </p>
+      )}
+
+      {showUpgrade && (
+        <UpgradeNudge
+          feature="plus de scans par jour"
+          description="Votre plan actuel a atteint sa limite de scans quotidiens."
+          compact
+        />
       )}
 
       {/* Filtres et tri */}

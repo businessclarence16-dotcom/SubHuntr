@@ -4,6 +4,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getRedditClient } from '@/lib/reddit/client'
+import { checkScanLimit } from '@/lib/plan-limits'
+import { Plan } from '@/types'
 
 interface RedditPost {
   id: string
@@ -41,6 +43,18 @@ export async function POST(request: NextRequest) {
 
   if (!project) {
     return NextResponse.json({ error: 'Projet non trouvé' }, { status: 404 })
+  }
+
+  // Vérifie la limite de scans par jour
+  const { data: profile } = await supabase
+    .from('users')
+    .select('plan')
+    .eq('id', user.id)
+    .single()
+
+  const scanCheck = await checkScanLimit(supabase, projectId, (profile?.plan ?? 'free') as Plan)
+  if (!scanCheck.allowed) {
+    return NextResponse.json({ error: scanCheck.message, upgrade: true }, { status: 403 })
   }
 
   // Récupère les keywords et subreddits actifs du projet
