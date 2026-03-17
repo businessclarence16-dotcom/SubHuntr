@@ -64,7 +64,8 @@ export function FeedClient({ projectId, projectName, posts, keywords, subreddits
       if (!res.ok) {
         setScanResult(`Erreur : ${data.error}`)
       } else {
-        setScanResult(`Scan terminé ! ${data.postsFound} nouveau(x) post(s) trouvé(s).`)
+        const mockNote = data.mock ? ' (mode demo — configurez les clés Reddit pour des vrais posts)' : ''
+        setScanResult(`Scan terminé ! ${data.postsFound} nouveau(x) post(s) trouvé(s).${mockNote}`)
         router.refresh()
       }
     } catch {
