@@ -1,67 +1,142 @@
-// Page de connexion — formulaire email/password avec Server Action
+// Login page — premium dark theme matching landing page exactly
 
 'use client'
 
+import { useState } from 'react'
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { login, type AuthState } from '@/app/(auth)/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 const initialState: AuthState = { error: null }
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState)
+  const [showPassword, setShowPassword] = useState(false)
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Connexion</CardTitle>
-        <CardDescription>
-          Connectez-vous à votre compte SubHuntr
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="flex flex-col gap-4">
-          {state.error && (
-            <p className="text-sm text-destructive">{state.error}</p>
-          )}
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md animate-fade-in-up">
+        {/* Logo */}
+        <div className="mb-8 flex items-center justify-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
+            <div className="h-1.5 w-1.5 rounded-full bg-white" />
+          </div>
+          <span
+            className="text-[0.95rem] font-bold text-[#fafafa]"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            SubHuntr
+          </span>
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="jean@exemple.com"
-              required
-            />
+        {/* Card — matches .demo-w style */}
+        <div
+          className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
+          style={{
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 50px rgba(0,0,0,0.5), 0 0 80px rgba(29,158,117,0.05)',
+          }}
+        >
+          <div className="mb-6 text-center">
+            <h1
+              className="text-[clamp(1.7rem,3.5vw,2rem)] font-[800] text-[#fafafa]"
+              style={{ letterSpacing: '-0.035em', lineHeight: '1.15' }}
+            >
+              Welcome back
+            </h1>
+            <p className="mt-2 text-[0.88rem] text-[#a1a1aa]">Sign in to your account</p>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-            />
-          </div>
+          <form action={formAction} className="flex flex-col gap-5">
+            {state.error && (
+              <div className="rounded-[10px] border border-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-[0.82rem] text-[#ef4444]">
+                {state.error}
+              </div>
+            )}
 
-          <Button type="submit" disabled={pending}>
-            {pending ? 'Connexion...' : 'Se connecter'}
-          </Button>
+            {/* Email */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-[0.82rem] font-semibold text-[#fafafa]">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52525b]" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@company.com"
+                  required
+                  className="h-11 w-full rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#09090b] pl-10 pr-4 text-[0.88rem] text-[#fafafa] placeholder:text-[#52525b] focus:border-[#1D9E75] focus:outline-none"
+                  style={{ transition: 'border-color 0.2s' }}
+                />
+              </div>
+            </div>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Pas encore de compte ?{' '}
-            <Link href="/signup" className="text-primary underline">
-              S&apos;inscrire
-            </Link>
-          </p>
-        </form>
-      </CardContent>
-    </Card>
+            {/* Password */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-[0.82rem] font-semibold text-[#fafafa]">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52525b]" />
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="h-11 w-full rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#09090b] pl-10 pr-11 text-[0.88rem] text-[#fafafa] placeholder:text-[#52525b] focus:border-[#1D9E75] focus:outline-none"
+                  style={{ transition: 'border-color 0.2s' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52525b] hover:text-[#a1a1aa]"
+                  style={{ transition: 'color 0.15s' }}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit — matches .btn-p */}
+            <button
+              type="submit"
+              disabled={pending}
+              className="h-[46px] w-full rounded-[10px] bg-[#1D9E75] text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget
+                el.style.background = '#17805f'
+                el.style.transform = 'translateY(-1px)'
+                el.style.boxShadow = '0 0 40px rgba(29,158,117,0.25), 0 8px 24px rgba(0,0,0,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget
+                el.style.background = '#1D9E75'
+                el.style.transform = 'translateY(0)'
+                el.style.boxShadow = '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)'
+              }}
+            >
+              {pending ? 'Signing in...' : 'Sign in'}
+            </button>
+
+            <p className="text-center text-[0.82rem] text-[#a1a1aa]">
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/signup"
+                className="font-semibold text-[#1D9E75] hover:text-[#34d399]"
+                style={{ transition: 'color 0.15s' }}
+              >
+                Sign up
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }

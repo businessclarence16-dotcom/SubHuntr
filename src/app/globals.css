@@ -126,9 +126,42 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
   html {
-    @apply font-sans scroll-smooth;
+    @apply scroll-smooth;
   }
+  /* Ensure native elements inherit the font */
+  input, textarea, button, select {
+    font-family: inherit;
+  }
+}
+
+/* SubHuntr animations — uses landing page easing: cubic-bezier(0.16, 1, 0.3, 1) */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes chipPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-chip-pop {
+  animation: chipPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
