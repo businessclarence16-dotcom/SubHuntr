@@ -1,19 +1,10 @@
-// Dialog de réponse — permet de rédiger et envoyer une réponse à un post Reddit
+// Reply dialog — compose and copy a reply to a Reddit post
+// Premium dark theme matching landing page styles
 
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Copy, Check } from 'lucide-react'
+import { Loader2, Copy, Check, ArrowUpRight } from 'lucide-react'
 
 interface ReplyDialogProps {
   open: boolean
@@ -49,7 +40,7 @@ export function ReplyDialog({ open, onOpenChange, post, onReplySent }: ReplyDial
 
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error || 'Erreur lors de l\'envoi')
+        setError(data.error || 'Error sending reply')
         return
       }
 
@@ -57,7 +48,7 @@ export function ReplyDialog({ open, onOpenChange, post, onReplySent }: ReplyDial
       onOpenChange(false)
       setContent(getDefaultTemplate(post))
     } catch {
-      setError('Erreur réseau')
+      setError('Network error')
     } finally {
       setSending(false)
     }
@@ -69,61 +60,116 @@ export function ReplyDialog({ open, onOpenChange, post, onReplySent }: ReplyDial
     setTimeout(() => setCopied(false), 2000)
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Répondre au post</DialogTitle>
-          <DialogDescription className="line-clamp-1">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+        style={{ animation: 'fadeIn 0.15s ease-out' }}
+      />
+
+      {/* Dialog card — matches .demo-w style */}
+      <div
+        className="animate-fade-in-up relative w-full max-w-[600px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-6"
+        style={{
+          boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 50px rgba(0,0,0,0.5), 0 0 80px rgba(29,158,117,0.05)',
+        }}
+      >
+        {/* Header */}
+        <div className="mb-5">
+          <h2
+            className="text-[1.1rem] font-[700] text-[#fafafa]"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            Reply to post
+          </h2>
+          <p className="mt-1 truncate text-[0.82rem] text-[#52525b]">
             {post.title} — r/{post.subreddit}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Écrivez votre réponse..."
-            rows={8}
-            className="resize-none"
-          />
-
-          <p className="text-xs text-muted-foreground">
-            Copiez votre réponse et collez-la directement sur Reddit.
-            Le post s&apos;ouvrira dans un nouvel onglet.
           </p>
-
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleCopy}>
-            {copied ? (
-              <Check className="mr-2 h-4 w-4" />
+        {/* Textarea — matches .roi-input style */}
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Write your reply..."
+          rows={8}
+          className="mb-4 w-full resize-none rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#09090b] px-4 py-3 text-[0.88rem] text-[#fafafa] placeholder:text-[#52525b] focus:border-[#1D9E75] focus:outline-none"
+          style={{ transition: 'border-color 0.2s' }}
+        />
+
+        <p className="mb-4 text-[0.72rem] text-[#52525b]">
+          Copy your reply and paste it directly on Reddit. The post will open in a new tab.
+        </p>
+
+        {error && (
+          <div className="mb-4 rounded-[10px] border border-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-[0.82rem] text-[#ef4444]">
+            {error}
+          </div>
+        )}
+
+        {/* Footer buttons */}
+        <div className="flex items-center justify-end gap-3">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="h-[38px] rounded-[10px] px-4 text-[0.82rem] font-medium text-[#a1a1aa] hover:text-[#fafafa]"
+            style={{ transition: 'color 0.15s' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCopy}
+            className="inline-flex h-[38px] items-center gap-1.5 rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-transparent px-4 text-[0.82rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+            style={{ transition: 'all 0.2s' }}
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-[#1D9E75]" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+          {/* Primary button — matches .btn-p */}
+          <button
+            onClick={handleSend}
+            disabled={sending || !content.trim()}
+            className="inline-flex h-[40px] items-center gap-2 rounded-[10px] bg-[#1D9E75] px-5 text-[0.85rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget
+              el.style.background = '#17805f'
+              el.style.transform = 'translateY(-1px)'
+              el.style.boxShadow = '0 0 40px rgba(29,158,117,0.25), 0 8px 24px rgba(0,0,0,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget
+              el.style.background = '#1D9E75'
+              el.style.transform = 'translateY(0)'
+              el.style.boxShadow = '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)'
+            }}
+          >
+            {sending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Copy className="mr-2 h-4 w-4" />
+              <ArrowUpRight className="h-4 w-4" />
             )}
-            {copied ? 'Copié !' : 'Copier'}
-          </Button>
-          <Button onClick={handleSend} disabled={sending || !content.trim()}>
-            {sending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sauvegarder & ouvrir Reddit
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            Copy & Open Reddit
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
-// Template par défaut pour les réponses
+// Default reply template
 function getDefaultTemplate(post: { author: string }) {
   return `Hey${post.author !== '[deleted]' ? ` u/${post.author}` : ''},
 
-J'ai vu ton post et je pense pouvoir t'aider !
+I saw your post and I think I can help!
 
-[Votre suggestion ici]
+[Your suggestion here]
 
-N'hésite pas si tu as des questions.`
+Let me know if you have any questions.`
 }

@@ -1,12 +1,11 @@
-// Composant client du Feed — bouton scan, filtres, tri et liste de posts avec actions
+// Feed client — main lead feed with scan, filters, post cards, and reply dialog
+// Premium dark theme matching landing page .demo-w style
 
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from 'next/link'
 import {
   Select,
   SelectContent,
@@ -19,11 +18,14 @@ import {
   RefreshCw,
   ArrowUpRight,
   MessageSquare,
-  ThumbsUp,
+  Search,
+  Reply,
+  Check,
   Bookmark,
   SkipForward,
-  Reply,
-  ArrowDownUp,
+  Target,
+  Inbox,
+  Zap,
 } from 'lucide-react'
 import { ReplyDialog } from '@/components/feed/reply-dialog'
 import { UpgradeNudge } from '@/components/shared/upgrade-nudge'
@@ -52,20 +54,40 @@ interface FeedClientProps {
   subreddits: string[]
 }
 
+type QuickFilter = 'all' | 'high-intent' | 'new' | 'saved'
 type SortOption = 'date' | 'score' | 'relevance' | 'comments'
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diff = Math.floor((now - then) / 1000)
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
 export function FeedClient({ projectId, projectName, posts: initialPosts, keywords, subreddits }: FeedClientProps) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState<string | null>(null)
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
   const [filterKeyword, setFilterKeyword] = useState<string>('all')
   const [filterSubreddit, setFilterSubreddit] = useState<string>('all')
-  const [filterStatus, setFilterStatus] = useState<string>('all')
   const [sortBy, setSortBy] = useState<SortOption>('date')
   const [posts, setPosts] = useState<Post[]>(initialPosts)
   const [updatingPost, setUpdatingPost] = useState<string | null>(null)
   const [replyPost, setReplyPost] = useState<Post | null>(null)
   const [showUpgrade, setShowUpgrade] = useState(false)
+
+  // KPI counts
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const postsToday = posts.filter((p) => new Date(p.found_at) >= todayStart).length
+  const highIntent = posts.filter((p) => (p.relevance_score ?? 0) >= 7).length
+  const unread = posts.filter((p) => p.status === 'new').length
+  const toReply = posts.filter((p) => p.status === 'new' || p.status === 'saved').length
 
   async function handleScan() {
     setScanning(true)
@@ -81,15 +103,15 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       const data = await res.json()
 
       if (!res.ok) {
-        setScanResult(`Erreur : ${data.error}`)
+        setScanResult(`Error: ${data.error}`)
         if (data.upgrade) setShowUpgrade(true)
       } else {
-        const mockNote = data.mock ? ' (mode demo — configurez les clés Reddit pour des vrais posts)' : ''
-        setScanResult(`Scan terminé ! ${data.postsFound} nouveau(x) post(s) trouvé(s).${mockNote}`)
+        const mockNote = data.mock ? ' (demo mode — configure Reddit keys for real posts)' : ''
+        setScanResult(`Scan complete! ${data.postsFound} new post(s) found.${mockNote}`)
         router.refresh()
       }
     } catch {
-      setScanResult('Erreur réseau lors du scan.')
+      setScanResult('Network error during scan.')
     } finally {
       setScanning(false)
     }
@@ -114,12 +136,16 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
     }
   }
 
-  // Applique les filtres
+  // Apply filters
   const filteredPosts = posts
     .filter((post) => {
+      // Quick filter
+      if (quickFilter === 'high-intent' && (post.relevance_score ?? 0) < 7) return false
+      if (quickFilter === 'new' && post.status !== 'new') return false
+      if (quickFilter === 'saved' && post.status !== 'saved') return false
+      // Dropdowns
       if (filterKeyword !== 'all' && post.matched_keyword !== filterKeyword) return false
       if (filterSubreddit !== 'all' && post.subreddit !== filterSubreddit) return false
-      if (filterStatus !== 'all' && post.status !== filterStatus) return false
       return true
     })
     .sort((a, b) => {
@@ -136,213 +162,287 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       }
     })
 
-  const statusLabel = (status: string) => {
-    switch (status) {
-      case 'new': return 'Nouveau'
-      case 'replied': return 'Répondu'
-      case 'saved': return 'Sauvegardé'
-      case 'skipped': return 'Ignoré'
-      default: return status
-    }
-  }
+  const quickFilters: { key: QuickFilter; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'high-intent', label: 'High-intent (7+)' },
+    { key: 'new', label: 'Unread' },
+    { key: 'saved', label: 'Saved' },
+  ]
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Feed</h1>
-          <p className="text-sm text-muted-foreground">
-            {projectName} — {posts.length} post(s) trouvé(s)
-          </p>
+          <h1
+            className="text-[clamp(1.5rem,3vw,2rem)] font-[800] text-[#fafafa]"
+            style={{ letterSpacing: '-0.035em', lineHeight: '1.15' }}
+          >
+            Lead Feed
+          </h1>
+          {/* KPI bar — matches .demo-kpi */}
+          <div className="mt-2 flex flex-wrap gap-4 text-[0.75rem] text-[#52525b]">
+            <span><strong className="font-mono font-semibold text-[#fafafa]">{postsToday}</strong> posts today</span>
+            <span><strong className="font-mono font-semibold text-[#34d399]">{highIntent}</strong> high-intent</span>
+            <span><strong className="font-mono font-semibold text-[#fafafa]">{unread}</strong> unread</span>
+            <span><strong className="font-mono font-semibold text-[#f59e0b]">{toReply}</strong> to reply</span>
+          </div>
         </div>
-        <Button onClick={handleScan} disabled={scanning}>
+        {/* Scan button — matches .btn-p */}
+        <button
+          onClick={handleScan}
+          disabled={scanning}
+          className="inline-flex h-[42px] shrink-0 items-center gap-2 rounded-[10px] bg-[#1D9E75] px-5 text-[0.85rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#17805f'
+            el.style.transform = 'translateY(-1px)'
+            el.style.boxShadow = '0 0 40px rgba(29,158,117,0.25), 0 8px 24px rgba(0,0,0,0.3)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#1D9E75'
+            el.style.transform = 'translateY(0)'
+            el.style.boxShadow = '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)'
+          }}
+        >
           {scanning ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="h-4 w-4" />
           )}
-          {scanning ? 'Scan en cours...' : 'Lancer un scan'}
-        </Button>
+          {scanning ? 'Scanning...' : 'Scan now'}
+        </button>
       </div>
 
       {scanResult && (
-        <p className={`text-sm ${scanResult.startsWith('Erreur') ? 'text-destructive' : 'text-[#34d399]'}`}>
+        <p className={`text-[0.82rem] ${scanResult.startsWith('Error') ? 'text-[#ef4444]' : 'text-[#34d399]'}`}>
           {scanResult}
         </p>
       )}
 
       {showUpgrade && (
         <UpgradeNudge
-          feature="plus de scans par jour"
-          description="Votre plan actuel a atteint sa limite de scans quotidiens."
+          feature="more daily scans"
+          description="Your current plan has reached its daily scan limit."
           compact
         />
       )}
 
-      {/* Filtres et tri */}
-      <div className="flex flex-wrap gap-3">
-        <Select value={filterKeyword} onValueChange={(v) => setFilterKeyword(v ?? 'all')}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Keyword" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les keywords</SelectItem>
-            {keywords.map((kw) => (
-              <SelectItem key={kw} value={kw}>{kw}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Quick filters + dropdowns */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Quick filter pills */}
+        <div className="flex gap-1">
+          {quickFilters.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setQuickFilter(f.key)}
+              className={`rounded-full px-4 py-1.5 text-[0.78rem] font-medium ${
+                quickFilter === f.key
+                  ? 'bg-[rgba(255,255,255,0.06)] text-[#fafafa]'
+                  : 'text-[#52525b] hover:text-[#a1a1aa]'
+              }`}
+              style={{ transition: 'all 0.15s' }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-        <Select value={filterSubreddit} onValueChange={(v) => setFilterSubreddit(v ?? 'all')}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Subreddit" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les subreddits</SelectItem>
-            {subreddits.map((sub) => (
-              <SelectItem key={sub} value={sub}>r/{sub}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Dropdown filters */}
+        <div className="flex flex-wrap gap-2">
+          <Select value={filterKeyword} onValueChange={(v) => setFilterKeyword(v ?? 'all')}>
+            <SelectTrigger className="h-9 w-[160px] rounded-[10px] border-[rgba(255,255,255,0.06)] bg-[#09090b] text-[0.78rem]">
+              <SelectValue placeholder="Keyword" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All keywords</SelectItem>
+              {keywords.map((kw) => (
+                <SelectItem key={kw} value={kw}>{kw}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v ?? 'all')}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
-            <SelectItem value="new">Nouveau</SelectItem>
-            <SelectItem value="replied">Répondu</SelectItem>
-            <SelectItem value="saved">Sauvegardé</SelectItem>
-            <SelectItem value="skipped">Ignoré</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={filterSubreddit} onValueChange={(v) => setFilterSubreddit(v ?? 'all')}>
+            <SelectTrigger className="h-9 w-[160px] rounded-[10px] border-[rgba(255,255,255,0.06)] bg-[#09090b] text-[0.78rem]">
+              <SelectValue placeholder="Subreddit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All subreddits</SelectItem>
+              {subreddits.map((sub) => (
+                <SelectItem key={sub} value={sub}>r/{sub}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={sortBy} onValueChange={(v) => setSortBy((v as SortOption) ?? 'date')}>
-          <SelectTrigger className="w-[180px]">
-            <ArrowDownUp className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Trier par" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="date">Plus récent</SelectItem>
-            <SelectItem value="score">Meilleur score</SelectItem>
-            <SelectItem value="relevance">Plus pertinent</SelectItem>
-            <SelectItem value="comments">Plus commenté</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy((v as SortOption) ?? 'date')}>
+            <SelectTrigger className="h-9 w-[150px] rounded-[10px] border-[rgba(255,255,255,0.06)] bg-[#09090b] text-[0.78rem]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">Most recent</SelectItem>
+              <SelectItem value="score">Top score</SelectItem>
+              <SelectItem value="relevance">Most relevant</SelectItem>
+              <SelectItem value="comments">Most comments</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Liste des posts */}
+      {/* Post list */}
       {filteredPosts.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              {posts.length === 0
-                ? 'Aucun post trouvé. Lancez un scan pour commencer !'
-                : 'Aucun post ne correspond aux filtres.'}
+        /* Empty state */
+        <div
+          className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] py-16 text-center"
+          style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 10px 30px rgba(0,0,0,0.3)' }}
+        >
+          <Search className="mx-auto mb-4 h-10 w-10 text-[#52525b]" />
+          <h3
+            className="mb-2 text-[1.1rem] font-[700] text-[#fafafa]"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            {posts.length === 0 ? 'No posts yet' : 'No posts match your filters'}
+          </h3>
+          {posts.length === 0 ? (
+            <div className="space-y-3">
+              <p className="text-[0.82rem] text-[#a1a1aa]">
+                Run your first scan or adjust your settings:
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/keywords"
+                  className="inline-flex items-center gap-1.5 rounded-[10px] border border-[rgba(255,255,255,0.06)] px-4 py-2 text-[0.82rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+                  style={{ transition: 'all 0.2s' }}
+                >
+                  <Target className="h-3.5 w-3.5" /> Add keywords
+                </Link>
+                <Link
+                  href="/subreddits"
+                  className="inline-flex items-center gap-1.5 rounded-[10px] border border-[rgba(255,255,255,0.06)] px-4 py-2 text-[0.82rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+                  style={{ transition: 'all 0.2s' }}
+                >
+                  <Inbox className="h-3.5 w-3.5" /> Add subreddits
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <p className="text-[0.82rem] text-[#a1a1aa]">
+              Try broader keywords, add more subreddits, or run a new scan.
             </p>
-          </CardContent>
-        </Card>
+          )}
+        </div>
       ) : (
-        <div className="space-y-3">
-          {filteredPosts.map((post) => (
-            <Card key={post.id} className={post.status === 'skipped' ? 'opacity-60' : ''}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-base leading-snug">
-                      {post.title}
-                    </CardTitle>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span>r/{post.subreddit}</span>
-                      <span>·</span>
-                      <span>u/{post.author}</span>
-                      <span>·</span>
-                      <span>{new Date(post.reddit_created_at).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                  </div>
-                  <a
-                    href={post.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0"
-                  >
-                    <Button variant="ghost" size="icon">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
-                  </a>
+        <div className="flex flex-col gap-2">
+          {filteredPosts.map((post, i) => {
+            const score = post.relevance_score ?? 0
+            const isReplied = post.status === 'replied'
+            const isSkipped = post.status === 'skipped'
+
+            return (
+              <div
+                key={post.id}
+                className="animate-fade-in-up group flex items-center gap-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
+                style={{
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  animationDelay: `${Math.min(i * 0.04, 0.4)}s`,
+                  opacity: isReplied ? 0.7 : isSkipped ? 0.5 : 1,
+                }}
+              >
+                {/* Score badge — matches .demo-sc */}
+                <div
+                  className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[8px] font-mono text-[0.8rem] font-bold ${
+                    score >= 8
+                      ? 'bg-[rgba(29,158,117,0.15)] text-[#34d399]'
+                      : score >= 5
+                        ? 'bg-[rgba(245,158,11,0.1)] text-[#f59e0b]'
+                        : 'bg-[rgba(255,255,255,0.05)] text-[#52525b]'
+                  }`}
+                >
+                  {score || '—'}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {post.body && (
-                  <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                    {post.body}
+
+                {/* Content — matches .demo-post-b */}
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="truncate text-[0.82rem] font-semibold text-[#fafafa]"
+                    title={post.title}
+                  >
+                    {post.title}
                   </p>
-                )}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary">{post.matched_keyword}</Badge>
-                  {post.relevance_score && (
-                    <span className={`inline-flex items-center justify-center rounded-lg px-2 py-0.5 font-mono text-xs font-bold ${
-                      post.relevance_score >= 7
-                        ? 'bg-[rgba(29,158,117,0.15)] text-[#34d399]'
-                        : post.relevance_score >= 5
-                          ? 'bg-[rgba(245,158,11,0.1)] text-[#f59e0b]'
-                          : 'bg-[rgba(255,255,255,0.06)] text-[#52525b]'
-                    }`}>
-                      {post.relevance_score}/10
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[0.68rem] text-[#52525b]">
+                    <span className="font-medium text-[#1D9E75]">r/{post.subreddit}</span>
+                    <span>{timeAgo(post.reddit_created_at)}</span>
+                    <span className="flex items-center gap-0.5">
+                      <MessageSquare className="h-2.5 w-2.5" /> {post.num_comments}
                     </span>
-                  )}
-                  <Badge variant={post.status === 'new' ? 'default' : 'secondary'}>
-                    {statusLabel(post.status)}
-                  </Badge>
-                  <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <ThumbsUp className="h-3 w-3" /> {post.score}
+                    <span
+                      className="rounded-[5px] bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 font-mono text-[0.6rem]"
+                    >
+                      {post.matched_keyword}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" /> {post.num_comments}
-                    </span>
+                    {isReplied && (
+                      <span className="inline-flex items-center gap-0.5 font-medium text-[#1D9E75]">
+                        <Check className="h-2.5 w-2.5" /> Replied
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="mt-3 flex gap-2 border-t pt-3">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={updatingPost === post.id}
-                    onClick={() => setReplyPost(post)}
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-7 items-center gap-1 rounded-[6px] border border-[rgba(255,255,255,0.06)] px-2.5 text-[0.65rem] font-semibold text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+                    style={{ transition: 'all 0.15s' }}
                   >
-                    <Reply className="mr-1 h-3 w-3" />
-                    Répondre
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={updatingPost === post.id || post.status === 'saved'}
-                    onClick={() => updatePostStatus(post.id, 'saved')}
-                  >
-                    <Bookmark className="mr-1 h-3 w-3" />
-                    Sauvegarder
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={updatingPost === post.id || post.status === 'skipped'}
-                    onClick={() => updatePostStatus(post.id, 'skipped')}
-                  >
-                    <SkipForward className="mr-1 h-3 w-3" />
-                    Ignorer
-                  </Button>
+                    <ArrowUpRight className="h-3 w-3" /> Open
+                  </a>
+                  {!isReplied && (
+                    <button
+                      onClick={() => setReplyPost(post)}
+                      disabled={updatingPost === post.id}
+                      className="flex h-7 items-center gap-1 rounded-[6px] bg-[#1D9E75] px-2.5 text-[0.65rem] font-semibold text-white hover:bg-[#17805f] disabled:opacity-50"
+                      style={{ transition: 'all 0.15s' }}
+                    >
+                      <Reply className="h-3 w-3" /> Reply
+                    </button>
+                  )}
+                  {post.status !== 'saved' && post.status !== 'replied' && (
+                    <button
+                      onClick={() => updatePostStatus(post.id, 'saved')}
+                      disabled={updatingPost === post.id}
+                      className="flex h-7 w-7 items-center justify-center rounded-[6px] text-[#52525b] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#a1a1aa] disabled:opacity-50"
+                      style={{ transition: 'all 0.15s' }}
+                      title="Save"
+                    >
+                      <Bookmark className="h-3 w-3" />
+                    </button>
+                  )}
+                  {post.status !== 'skipped' && post.status !== 'replied' && (
+                    <button
+                      onClick={() => updatePostStatus(post.id, 'skipped')}
+                      disabled={updatingPost === post.id}
+                      className="flex h-7 w-7 items-center justify-center rounded-[6px] text-[#52525b] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#a1a1aa] disabled:opacity-50"
+                      style={{ transition: 'all 0.15s' }}
+                      title="Skip"
+                    >
+                      <SkipForward className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* Dialog de réponse */}
+      {/* Reply dialog */}
       {replyPost && (
         <ReplyDialog
           open={!!replyPost}
@@ -352,7 +452,6 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
             setPosts((prev) =>
               prev.map((p) => (p.id === replyPost.id ? { ...p, status: 'replied' } : p))
             )
-            // Ouvre le post Reddit dans un nouvel onglet
             window.open(replyPost.url, '_blank')
           }}
         />
