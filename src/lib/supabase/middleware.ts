@@ -52,8 +52,8 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirige vers /feed si l'utilisateur est déjà connecté
-  // et essaie d'accéder à login/signup
-  if (user && isAuthPage) {
+  // et essaie d'accéder à login/signup ou à la landing page
+  if (user && (isAuthPage || request.nextUrl.pathname === '/')) {
     const url = request.nextUrl.clone()
     url.pathname = '/feed'
     return NextResponse.redirect(url)
