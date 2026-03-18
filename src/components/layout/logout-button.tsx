@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 export function LogoutButton() {
   return (
     <form action={logout}>
-      <Button variant="ghost" size="sm" type="submit">
+      <Button variant="ghost" size="sm" type="submit" className="w-full justify-start text-[#52525b] hover:text-[#a1a1aa]">
         Déconnexion
       </Button>
     </form>

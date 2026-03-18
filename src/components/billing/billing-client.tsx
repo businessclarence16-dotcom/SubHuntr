@@ -99,16 +99,16 @@ export function BillingClient({ plan }: BillingClientProps) {
               key={p.id}
               className={
                 p.popular
-                  ? 'border-primary ring-1 ring-primary'
+                  ? 'border-[#1D9E75] shadow-[0_0_50px_rgba(29,158,117,0.08)]'
                   : isCurrent
-                    ? 'border-primary/50'
+                    ? 'border-[rgba(29,158,117,0.3)]'
                     : ''
               }
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{p.name}</CardTitle>
-                  {p.popular && <Badge variant="default">Populaire</Badge>}
+                  {p.popular && <Badge className="bg-[#1D9E75] text-white">Populaire</Badge>}
                   {isCurrent && !p.popular && <Badge variant="secondary">Actuel</Badge>}
                 </div>
                 <CardDescription>
@@ -121,7 +121,7 @@ export function BillingClient({ plan }: BillingClientProps) {
                 <ul className="space-y-2">
                   {p.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 shrink-0 text-green-600" />
+                      <Check className="h-4 w-4 shrink-0 text-[#1D9E75]" />
                       {feature}
                     </li>
                   ))}

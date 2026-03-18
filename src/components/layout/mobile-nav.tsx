@@ -1,4 +1,4 @@
-// Navigation mobile — menu hamburger avec Sheet (panneau latéral)
+// Navigation mobile — menu hamburger avec Sheet dark theme
 
 'use client'
 
@@ -36,17 +36,20 @@ export function MobileNav() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9">
+      <SheetTrigger className="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-9 w-9 text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[rgba(255,255,255,0.04)]">
         <Menu className="h-5 w-5" />
         <span className="sr-only">Menu</span>
       </SheetTrigger>
-      <SheetContent side="left" className="w-56 p-4">
+      <SheetContent side="left" className="w-56 border-r border-[rgba(255,255,255,0.06)] bg-[#0f0f12] p-4">
         <Link
           href="/feed"
-          className="mb-6 block px-3 text-lg font-bold"
+          className="mb-6 flex items-center gap-2 px-3 text-[0.95rem] font-bold tracking-tight text-[#fafafa]"
           onClick={() => setOpen(false)}
         >
-          Sub<span className="text-primary">Huntr</span>
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1D9E75]">
+            <div className="h-1.5 w-1.5 rounded-full bg-white" />
+          </div>
+          SubHuntr
         </Link>
 
         <nav className="flex flex-1 flex-col gap-1">
@@ -58,10 +61,10 @@ export function MobileNav() {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                   isActive
-                    ? 'bg-primary/10 font-medium text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-[rgba(29,158,117,0.15)] font-medium text-[#1D9E75]'
+                    : 'text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#fafafa]'
                 )}
               >
                 <item.icon className="h-4 w-4" />

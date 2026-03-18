@@ -167,7 +167,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       </div>
 
       {scanResult && (
-        <p className={`text-sm ${scanResult.startsWith('Erreur') ? 'text-destructive' : 'text-green-600'}`}>
+        <p className={`text-sm ${scanResult.startsWith('Erreur') ? 'text-destructive' : 'text-[#34d399]'}`}>
           {scanResult}
         </p>
       )}
@@ -283,7 +283,15 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{post.matched_keyword}</Badge>
                   {post.relevance_score && (
-                    <Badge variant="outline">Pertinence : {post.relevance_score}/10</Badge>
+                    <span className={`inline-flex items-center justify-center rounded-lg px-2 py-0.5 font-mono text-xs font-bold ${
+                      post.relevance_score >= 7
+                        ? 'bg-[rgba(29,158,117,0.15)] text-[#34d399]'
+                        : post.relevance_score >= 5
+                          ? 'bg-[rgba(245,158,11,0.1)] text-[#f59e0b]'
+                          : 'bg-[rgba(255,255,255,0.06)] text-[#52525b]'
+                    }`}>
+                      {post.relevance_score}/10
+                    </span>
                   )}
                   <Badge variant={post.status === 'new' ? 'default' : 'secondary'}>
                     {statusLabel(post.status)}

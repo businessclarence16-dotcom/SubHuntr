@@ -85,7 +85,7 @@ export default async function AnalyticsPage() {
             <Search className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPosts ?? 0}</div>
+            <div className="font-mono text-2xl font-bold">{totalPosts ?? 0}</div>
           </CardContent>
         </Card>
 
@@ -95,7 +95,7 @@ export default async function AnalyticsPage() {
             <Reply className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{repliedPosts ?? 0}</div>
+            <div className="font-mono text-2xl font-bold">{repliedPosts ?? 0}</div>
           </CardContent>
         </Card>
 
@@ -105,7 +105,7 @@ export default async function AnalyticsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{responseRate}%</div>
+            <div className="font-mono text-2xl font-bold">{responseRate}%</div>
           </CardContent>
         </Card>
 
@@ -115,7 +115,7 @@ export default async function AnalyticsPage() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalScans ?? 0}</div>
+            <div className="font-mono text-2xl font-bold">{totalScans ?? 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -130,9 +130,9 @@ export default async function AnalyticsPage() {
             <div className="flex items-end gap-2" style={{ height: '160px' }}>
               {Object.entries(postsPerDay).map(([day, count]) => (
                 <div key={day} className="flex flex-1 flex-col items-center gap-1">
-                  <span className="text-xs font-medium">{count}</span>
+                  <span className="font-mono text-xs font-medium text-[#fafafa]">{count}</span>
                   <div
-                    className="w-full rounded-t bg-primary"
+                    className="w-full rounded-t bg-[#1D9E75]"
                     style={{
                       height: `${Math.max((count / maxPostsPerDay) * 120, 4)}px`,
                     }}
@@ -162,9 +162,9 @@ export default async function AnalyticsPage() {
                         <span className="font-medium">{keyword}</span>
                         <span className="text-muted-foreground">{count} posts ({percentage}%)</span>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-muted">
+                      <div className="h-2 w-full rounded-full bg-[rgba(255,255,255,0.06)]">
                         <div
-                          className="h-2 rounded-full bg-primary"
+                          className="h-2 rounded-full bg-[#1D9E75]"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

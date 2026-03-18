@@ -1,24 +1,26 @@
-// Layout racine de l'application RedditLeads
+// Layout racine de l'application SubHuntr — dark theme avec Plus Jakarta Sans + JetBrains Mono
 
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const jakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-sans',
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-mono',
   subsets: ['latin'],
+  weight: ['400', '500'],
 })
 
 export const metadata: Metadata = {
-  title: 'RedditLeads — Trouvez vos clients sur Reddit',
+  title: 'SubHuntr — Find Buyers on Reddit Before Your Competitors Do',
   description:
-    'Scannez Reddit automatiquement pour trouver des prospects qualifiés et générez des réponses personnalisées.',
+    'Monitor Reddit for high-intent buyers. Score leads 1-10, get instant alerts, reply with proven templates. From $29/mo.',
 }
 
 export default function RootLayout({
@@ -27,9 +29,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr">
+    <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${jakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
         {children}
         <Toaster />

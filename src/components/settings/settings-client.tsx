@@ -131,7 +131,7 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
                   Enregistrer
                 </Button>
                 {profileSaved && (
-                  <span className="text-sm text-green-600">Profil mis à jour !</span>
+                  <span className="text-sm text-[#1D9E75]">Profil mis à jour !</span>
                 )}
               </div>
             </CardContent>
@@ -180,7 +180,7 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
                     Enregistrer
                   </Button>
                   {projectSaved && (
-                    <span className="text-sm text-green-600">Projet mis à jour !</span>
+                    <span className="text-sm text-[#1D9E75]">Projet mis à jour !</span>
                   )}
                 </div>
               </CardContent>

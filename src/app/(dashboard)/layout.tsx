@@ -1,5 +1,4 @@
-// Layout pour les pages protégées du dashboard (nécessite authentification)
-// Sidebar fixe à gauche (desktop) + header en haut + nav mobile
+// Layout dashboard — dark theme avec sidebar, header backdrop blur, nav mobile
 
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
@@ -11,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#09090b]">
       {/* Sidebar — visible uniquement sur desktop */}
       <div className="hidden md:block">
         <Sidebar />
@@ -19,14 +18,14 @@ export default function DashboardLayout({
 
       {/* Zone principale : header + contenu */}
       <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center border-b px-4 md:px-6">
+        <div className="sticky top-0 z-40 flex h-14 items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(9,9,11,0.6)] px-4 backdrop-blur-xl md:px-6">
           {/* Menu hamburger — visible uniquement sur mobile */}
           <MobileNav />
           {/* Le header async avec user info est côté droit */}
           <div className="flex-1">
             <Header />
           </div>
-        </header>
+        </div>
 
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
