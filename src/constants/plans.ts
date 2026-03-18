@@ -12,6 +12,10 @@ export interface PlanLimits {
   competitorTracking: boolean
   analytics: 'basic' | 'full'
   prioritySupport: boolean
+  apiAccess: boolean
+  dedicatedSupport: boolean
+  customIntegrations: boolean
+  sla: boolean
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
@@ -25,6 +29,10 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     competitorTracking: false,
     analytics: 'basic',
     prioritySupport: false,
+    apiAccess: false,
+    dedicatedSupport: false,
+    customIntegrations: false,
+    sla: false,
   },
   growth: {
     projects: 3,
@@ -36,6 +44,10 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     competitorTracking: true,
     analytics: 'full',
     prioritySupport: false,
+    apiAccess: false,
+    dedicatedSupport: false,
+    customIntegrations: false,
+    sla: false,
   },
   agency: {
     projects: 10,
@@ -47,17 +59,38 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     competitorTracking: true,
     analytics: 'full',
     prioritySupport: true,
+    apiAccess: false,
+    dedicatedSupport: false,
+    customIntegrations: false,
+    sla: false,
+  },
+  enterprise: {
+    projects: Infinity,
+    keywordsPerProject: Infinity,
+    subreddits: Infinity,
+    scanIntervalMinutes: 1,
+    csvExport: true,
+    slackDiscord: true,
+    competitorTracking: true,
+    analytics: 'full',
+    prioritySupport: true,
+    apiAccess: true,
+    dedicatedSupport: true,
+    customIntegrations: true,
+    sla: true,
   },
 }
 
 export const PLAN_PRICES: Record<Plan, number> = {
   starter: 29,
   growth: 79,
-  agency: 149,
+  agency: 199,
+  enterprise: 0,
 }
 
 export const PLAN_LABELS: Record<Plan, string> = {
   starter: 'Starter',
   growth: 'Growth',
   agency: 'Agency',
+  enterprise: 'Enterprise',
 }

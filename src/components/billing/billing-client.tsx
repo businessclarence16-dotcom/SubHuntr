@@ -3,7 +3,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Zap } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Plan } from '@/types'
 
 interface BillingClientProps {
@@ -47,8 +47,8 @@ const plans = [
   {
     id: 'agency' as const,
     name: 'Agency',
-    monthlyPrice: 149,
-    annualPrice: 119,
+    monthlyPrice: 199,
+    annualPrice: 159,
     subtitle: 'For agencies and power users',
     features: [
       { text: '10 projects', on: true },
@@ -57,7 +57,23 @@ const plans = [
       { text: 'Scan every 2 min', on: true },
       { text: 'Slack & Discord alerts', on: true },
       { text: 'Competitor tracking', on: true },
-      { text: 'CSV export + API', on: true },
+      { text: 'CSV export + Priority support', on: true },
+    ],
+  },
+  {
+    id: 'enterprise' as const,
+    name: 'Enterprise',
+    monthlyPrice: 0,
+    annualPrice: 0,
+    subtitle: 'For large teams with custom needs',
+    isCustom: true,
+    features: [
+      { text: 'Unlimited everything', on: true },
+      { text: 'Real-time scanning (1 min)', on: true },
+      { text: 'API access', on: true },
+      { text: 'Dedicated support', on: true },
+      { text: 'Custom integrations', on: true },
+      { text: 'SLA guarantee', on: true },
     ],
   },
 ]
@@ -65,8 +81,10 @@ const plans = [
 export function BillingClient({ plan }: BillingClientProps) {
   const [annual, setAnnual] = useState(false)
 
+  const planOrder: Plan[] = ['starter', 'growth', 'agency', 'enterprise']
+
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1120, margin: '0 auto' }}>
       {/* ── Header ── */}
       <div className="animate-fade-in-up" style={{ textAlign: 'center', marginBottom: 14 }}>
         <h1
@@ -145,23 +163,23 @@ export function BillingClient({ plan }: BillingClientProps) {
         )}
       </div>
 
-      {/* ── Plan cards grid (matches landing .pr-grid / .plan) ── */}
+      {/* ── Plan cards grid ── */}
       <div
         className="animate-fade-in-up"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 14,
           animationDelay: '0.1s',
         }}
       >
         {plans.map((p) => {
           const isCurrent = p.id === plan
-          const isUpgrade = (
-            (p.id === 'growth' && plan === 'starter') ||
-            (p.id === 'agency' && (plan === 'starter' || plan === 'growth'))
-          )
+          const currentIdx = planOrder.indexOf(plan)
+          const thisIdx = planOrder.indexOf(p.id)
+          const isUpgrade = thisIdx > currentIdx && p.id !== 'enterprise'
           const price = annual ? p.annualPrice : p.monthlyPrice
+          const isCustom = 'isCustom' in p && p.isCustom
 
           return (
             <div
@@ -221,37 +239,81 @@ export function BillingClient({ plan }: BillingClientProps) {
               </p>
 
               {/* Price */}
-              <div style={{ marginBottom: 4 }}>
-                <span
-                  style={{
-                    fontSize: '2.6rem',
-                    fontWeight: 800,
-                    letterSpacing: '-0.04em',
-                    lineHeight: 1,
-                    color: '#fafafa',
-                  }}
-                >
-                  <span style={{ fontSize: '1.3rem', color: '#a1a1aa', verticalAlign: 'top' }}>$</span>
-                  {price}
-                </span>
-                <span style={{ fontSize: '.82rem', color: '#52525b', fontWeight: 400 }}>/mo</span>
-              </div>
-              {annual && (
-                <p
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '.72rem',
-                    color: '#52525b',
-                    marginBottom: 22,
-                  }}
-                >
-                  ${price * 12}/year — billed annually
-                </p>
+              {isCustom ? (
+                <>
+                  <div style={{ marginBottom: 4 }}>
+                    <span
+                      style={{
+                        fontSize: '2.2rem',
+                        fontWeight: 800,
+                        letterSpacing: '-0.04em',
+                        lineHeight: 1,
+                        color: '#fafafa',
+                      }}
+                    >
+                      Custom
+                    </span>
+                  </div>
+                  <div style={{ marginBottom: 22 }} />
+                </>
+              ) : (
+                <>
+                  <div style={{ marginBottom: 4 }}>
+                    <span
+                      style={{
+                        fontSize: '2.6rem',
+                        fontWeight: 800,
+                        letterSpacing: '-0.04em',
+                        lineHeight: 1,
+                        color: '#fafafa',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.3rem', color: '#a1a1aa', verticalAlign: 'top' }}>$</span>
+                      {price}
+                    </span>
+                    <span style={{ fontSize: '.82rem', color: '#52525b', fontWeight: 400 }}>/mo</span>
+                  </div>
+                  {annual ? (
+                    <p
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '.72rem',
+                        color: '#52525b',
+                        marginBottom: 22,
+                      }}
+                    >
+                      ${price * 12}/year — billed annually
+                    </p>
+                  ) : (
+                    <div style={{ marginBottom: 22 }} />
+                  )}
+                </>
               )}
-              {!annual && <div style={{ marginBottom: 22 }} />}
 
               {/* CTA button */}
-              {isCurrent ? (
+              {isCustom ? (
+                <a
+                  href="mailto:contact@subhuntr.com"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: 10,
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: '.85rem',
+                    textAlign: 'center',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: '#fafafa',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    cursor: 'pointer',
+                    marginBottom: 20,
+                    transition: 'all .2s',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Contact sales
+                </a>
+              ) : isCurrent ? (
                 <button
                   disabled
                   style={{

@@ -17,9 +17,9 @@ const DEMO_POSTS = [
   { score: 8, cls: 's8', title: "Need a Notion alternative — it's become too bloated", sub: 'r/Entrepreneur', time: '1h', comments: 41, comp: 'Notion', tip: 'I felt the same about Notion. Moved our team to [YOUR PRODUCT] and productivity...' },
 ]
 
-const MONTHLY_PRICES = [29, 79, 149]
-const ANNUAL_PRICES = [23, 63, 119]
-const ANNUAL_TOTALS = ['$276', '$756', '$1,428']
+const MONTHLY_PRICES = [29, 79, 199]
+const ANNUAL_PRICES = [23, 63, 159]
+const ANNUAL_TOTALS = ['$276', '$756', '$1,908']
 
 function CheckIcon() {
   return (
@@ -441,6 +441,21 @@ export function LandingPage() {
                 <li>Everything in Growth</li>
                 <li>CSV export</li>
                 <li>Priority support</li>
+              </ul>
+            </div>
+            <div className="plan rv">
+              <div className="pn">Enterprise</div>
+              <div className="ps">For large teams with custom needs</div>
+              <div className="pp" style={{ fontSize: '2.2rem' }}>Custom</div>
+              <div style={{ marginBottom: 22 }}></div>
+              <a href="mailto:contact@subhuntr.com" className="pc">Contact sales</a>
+              <ul className="pl">
+                <li>Unlimited everything</li>
+                <li>Real-time scanning (1 min)</li>
+                <li>API access</li>
+                <li>Dedicated support</li>
+                <li>Custom integrations</li>
+                <li>SLA guarantee</li>
               </ul>
             </div>
           </div>

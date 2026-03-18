@@ -227,7 +227,7 @@
 .landing .tog.on::after{transform:translateX(20px)}
 .landing .pr-save{font-family:var(--m);font-size:.68rem;color:var(--a);background:var(--gl);padding:2px 7px;border-radius:4px}
 
-.landing .pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:960px;margin:0 auto}
+.landing .pr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1120px;margin:0 auto}
 .landing .plan{border:1px solid var(--brd);border-radius:12px;padding:28px 24px;background:var(--card);transition:all .3s;position:relative}
 .landing .plan:hover{border-color:var(--brd2)}
 .landing .plan.pop{border-color:var(--a);box-shadow:0 0 50px var(--gl)}

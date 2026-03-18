@@ -1,6 +1,6 @@
 // Types TypeScript partagés pour l'ensemble de l'application RedditLeads
 
-export type Plan = 'starter' | 'growth' | 'agency'
+export type Plan = 'starter' | 'growth' | 'agency' | 'enterprise'
 
 export type PostStatus = 'new' | 'replied' | 'skipped' | 'saved'
 
