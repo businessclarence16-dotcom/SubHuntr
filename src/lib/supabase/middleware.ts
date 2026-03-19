@@ -42,8 +42,10 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup')
+  const isApiWebhook =
+    request.nextUrl.pathname === '/api/stripe/webhook'
   const isPublicPage =
-    isAuthPage || request.nextUrl.pathname === '/'
+    isAuthPage || request.nextUrl.pathname === '/' || isApiWebhook
 
   if (!user && !isPublicPage) {
     const url = request.nextUrl.clone()
