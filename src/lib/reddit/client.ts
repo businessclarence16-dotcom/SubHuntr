@@ -29,18 +29,33 @@ async function rateLimitedFetch(url: string): Promise<Response> {
   const now = Date.now()
   const elapsed = now - lastRequestTime
   if (elapsed < 2000) {
-    await new Promise((resolve) => setTimeout(resolve, 2000 - elapsed))
+    const waitMs = 2000 - elapsed
+    console.log(`[Reddit] Rate limit: waiting ${waitMs}ms before next request`)
+    await new Promise((resolve) => setTimeout(resolve, waitMs))
   }
   lastRequestTime = Date.now()
 
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'SubHuntr/1.0',
-    },
-  })
+  console.log(`[Reddit] Fetching: ${url}`)
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      headers: {
+        'User-Agent': 'SubHuntr/1.0 (by /u/SubHuntr)',
+        'Accept': 'application/json',
+      },
+    })
+  } catch (fetchError) {
+    console.error(`[Reddit] Fetch failed for ${url}:`, fetchError)
+    throw fetchError
+  }
+
+  console.log(`[Reddit] Response status: ${response.status} ${response.statusText}`)
 
   if (!response.ok) {
-    throw new Error(`Reddit API error: ${response.status} ${response.statusText}`)
+    const errorBody = await response.text().catch(() => '(could not read body)')
+    console.error(`[Reddit] Error response body (first 500 chars): ${errorBody.slice(0, 500)}`)
+    throw new Error(`Reddit API error: ${response.status} ${response.statusText} — ${errorBody.slice(0, 200)}`)
   }
 
   return response
@@ -111,9 +126,11 @@ interface RedditJsonChild {
 }
 
 interface RedditJsonResponse {
-  data: {
-    children: RedditJsonChild[]
+  data?: {
+    children?: RedditJsonChild[]
   }
+  error?: number
+  message?: string
 }
 
 async function searchSubredditPublic(
@@ -122,12 +139,43 @@ async function searchSubredditPublic(
 ): Promise<RedditPost[]> {
   const query = encodeURIComponent(keyword)
   const sub = encodeURIComponent(subredditName)
-  const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&limit=25`
+  const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&limit=25&t=week`
+
+  console.log(`[Reddit] Searching r/${subredditName} for "${keyword}"`)
+  console.log(`[Reddit] URL: ${url}`)
 
   const response = await rateLimitedFetch(url)
-  const json = (await response.json()) as RedditJsonResponse
 
-  if (!json.data?.children) return []
+  let rawText: string
+  try {
+    rawText = await response.text()
+  } catch (err) {
+    console.error(`[Reddit] Failed to read response body:`, err)
+    return []
+  }
+
+  console.log(`[Reddit] Raw response (first 500 chars): ${rawText.slice(0, 500)}`)
+
+  let json: RedditJsonResponse
+  try {
+    json = JSON.parse(rawText) as RedditJsonResponse
+  } catch (err) {
+    console.error(`[Reddit] Failed to parse JSON:`, err)
+    console.error(`[Reddit] Body was: ${rawText.slice(0, 1000)}`)
+    return []
+  }
+
+  if (json.error) {
+    console.error(`[Reddit] API error: ${json.error} — ${json.message}`)
+    return []
+  }
+
+  if (!json.data?.children) {
+    console.warn(`[Reddit] No data.children in response. Keys: ${Object.keys(json).join(', ')}`)
+    return []
+  }
+
+  console.log(`[Reddit] Got ${json.data.children.length} posts from r/${subredditName} for "${keyword}"`)
 
   return json.data.children.map((child) => {
     const post = child.data
@@ -164,7 +212,7 @@ function getSnoowrapClient(): Snoowrap {
   if (snoowrapClient) return snoowrapClient
 
   snoowrapClient = new Snoowrap({
-    userAgent: 'SubHuntr/1.0',
+    userAgent: 'SubHuntr/1.0 (by /u/SubHuntr)',
     clientId: process.env.REDDIT_CLIENT_ID!,
     clientSecret: process.env.REDDIT_CLIENT_SECRET!,
     username: process.env.REDDIT_USERNAME!,
@@ -198,6 +246,8 @@ async function searchSubredditSnoowrap(
 ): Promise<RedditPost[]> {
   const reddit = getSnoowrapClient()
 
+  console.log(`[Reddit] [Snoowrap] Searching r/${subredditName} for "${keyword}"`)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const results = await (reddit.getSubreddit(subredditName) as any).search({
     query: keyword,
@@ -205,6 +255,8 @@ async function searchSubredditSnoowrap(
     sort: 'new',
     limit: 25,
   })
+
+  console.log(`[Reddit] [Snoowrap] Got ${(results as unknown[]).length} posts from r/${subredditName}`)
 
   return (results as unknown as SnoowrapPost[]).map((post) => {
     const relevance = calculateRelevanceScore(
@@ -252,8 +304,16 @@ export async function searchSubreddit(
   subredditName: string,
   keyword: string,
 ): Promise<RedditPost[]> {
-  if (hasOfficialApiCredentials()) {
-    return searchSubredditSnoowrap(subredditName, keyword)
+  const mode = hasOfficialApiCredentials() ? 'snoowrap' : 'public'
+  console.log(`[Reddit] searchSubreddit("${subredditName}", "${keyword}") — mode: ${mode}`)
+
+  try {
+    if (mode === 'snoowrap') {
+      return await searchSubredditSnoowrap(subredditName, keyword)
+    }
+    return await searchSubredditPublic(subredditName, keyword)
+  } catch (err) {
+    console.error(`[Reddit] searchSubreddit failed for r/${subredditName} + "${keyword}":`, err)
+    return []
   }
-  return searchSubredditPublic(subredditName, keyword)
 }

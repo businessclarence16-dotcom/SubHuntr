@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
     cancel_url: `${origin}/billing?canceled=true`,
     metadata: { userId: user.id, plan, billing },
     subscription_data: {
-      trial_period_days: 7,
+      // Free trial only on Starter plan — Growth/Agency pay immediately
+      ...(plan === 'starter' ? { trial_period_days: 7 } : {}),
       metadata: { userId: user.id, plan },
     },
   })

@@ -85,29 +85,51 @@ export async function POST(request: NextRequest) {
     .single()
 
   const mode = hasOfficialApiCredentials() ? 'api' : 'public'
-  console.log(`[Scan] Starting scan for project ${projectId} (mode: ${mode}, ${subreddits.length} subs × ${keywords.length} keywords)`)
+  console.log(`[Scan] ========== SCAN START ==========`)
+  console.log(`[Scan] Project: ${projectId}`)
+  console.log(`[Scan] User: ${user.id} (plan: ${userPlan})`)
+  console.log(`[Scan] Mode: ${mode}`)
+  console.log(`[Scan] Keywords (${keywords.length}): ${keywords.map((k) => k.keyword).join(', ')}`)
+  console.log(`[Scan] Subreddits (${subreddits.length}): ${subreddits.map((s) => `r/${s.name}`).join(', ')}`)
+  console.log(`[Scan] Total requests needed: ${keywords.length * subreddits.length}`)
 
   try {
     let postsFound = 0
+    let totalFetched = 0
+    let totalDuplicates = 0
+    let totalErrors = 0
 
     for (const sub of subreddits) {
       for (const kw of keywords) {
         try {
+          console.log(`[Scan] --- Searching r/${sub.name} for "${kw.keyword}" ---`)
           const posts = await searchSubreddit(sub.name, kw.keyword)
-          console.log(`[Scan] r/${sub.name} + "${kw.keyword}" → ${posts.length} results`)
+          totalFetched += posts.length
+          console.log(`[Scan] r/${sub.name} + "${kw.keyword}" → ${posts.length} results from Reddit`)
+
+          if (posts.length === 0) {
+            console.log(`[Scan] No posts found, skipping dedup/insert`)
+            continue
+          }
 
           // Récupère les reddit_ids déjà connus pour ce projet en une seule requête
           const redditIds = posts.map((p) => p.reddit_id)
-          const { data: existingPosts } = await supabase
+          const { data: existingPosts, error: dedupeError } = await supabase
             .from('posts')
             .select('reddit_id')
             .eq('project_id', projectId)
             .in('reddit_id', redditIds)
 
-          const existingIds = new Set((existingPosts || []).map((p) => p.reddit_id))
+          if (dedupeError) {
+            console.error(`[Scan] Dedup query error:`, dedupeError)
+          }
 
-          // Filtre les posts déjà existants
+          const existingIds = new Set((existingPosts || []).map((p) => p.reddit_id))
           const newPosts = posts.filter((p) => !existingIds.has(p.reddit_id))
+          const dupes = posts.length - newPosts.length
+          totalDuplicates += dupes
+
+          console.log(`[Scan] r/${sub.name} + "${kw.keyword}" → ${newPosts.length} new, ${dupes} duplicates`)
 
           if (newPosts.length > 0) {
             const { error: insertError } = await supabase.from('posts').insert(
@@ -130,11 +152,14 @@ export async function POST(request: NextRequest) {
 
             if (insertError) {
               console.error(`[Scan] Insert error for r/${sub.name} + "${kw.keyword}":`, insertError)
+              totalErrors++
             } else {
               postsFound += newPosts.length
+              console.log(`[Scan] Inserted ${newPosts.length} posts for r/${sub.name} + "${kw.keyword}"`)
             }
           }
         } catch (searchError) {
+          totalErrors++
           console.error(`[Scan] Error scanning r/${sub.name} for "${kw.keyword}":`, searchError)
         }
       }
@@ -150,7 +175,11 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', scan?.id)
 
-    console.log(`[Scan] Completed — ${postsFound} new posts found`)
+    console.log(`[Scan] ========== SCAN COMPLETE ==========`)
+    console.log(`[Scan] Total fetched from Reddit: ${totalFetched}`)
+    console.log(`[Scan] Duplicates skipped: ${totalDuplicates}`)
+    console.log(`[Scan] New posts inserted: ${postsFound}`)
+    console.log(`[Scan] Errors: ${totalErrors}`)
 
     return NextResponse.json({
       postsFound,

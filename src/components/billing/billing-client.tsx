@@ -524,7 +524,11 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
                   }}
                 >
                   {loading === p.id && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {loading === p.id ? 'Processing...' : `Upgrade to ${p.name}`}
+                  {loading === p.id ? 'Processing...' : (
+                    p.id === 'starter' && !hasSubscription
+                      ? 'Start 7-day free trial'
+                      : `Upgrade to ${p.name} — $${price}/mo`
+                  )}
                 </button>
               ) : isDowngrade ? (
                 <button
@@ -565,7 +569,7 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
       </div>
 
       <p className="animate-fade-in-up" style={{ textAlign: 'center', fontSize: '.82rem', color: '#52525b', marginTop: 32, animationDelay: '0.15s' }}>
-        All plans include a 7-day free trial. Cancel anytime.
+        7-day free trial on Starter. Upgrade anytime.
       </p>
 
       {/* ── Cancel subscription confirmation dialog ── */}
