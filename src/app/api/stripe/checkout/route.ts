@@ -1,4 +1,4 @@
-// API Route to create a Stripe Checkout session
+// API Route to create a Stripe Checkout session (new subscriptions only)
 // POST /api/stripe/checkout { plan: 'starter' | 'growth' | 'agency', billing: 'monthly' | 'annual' }
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -23,14 +23,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid billing period' }, { status: 400 })
   }
 
-  console.log(`[Checkout] User ${user.id} requesting ${plan} (${billing})`)
-
-  // Get or create Stripe customer
+  // Get user profile
   const { data: profile } = await supabase
     .from('users')
-    .select('stripe_customer_id, email')
+    .select('stripe_customer_id, stripe_subscription_id, email')
     .eq('id', user.id)
     .single()
+
+  // Block if user already has an active subscription — use /api/stripe/change-plan instead
+  if (profile?.stripe_subscription_id) {
+    console.log(`[Checkout] User ${user.id} already has subscription ${profile.stripe_subscription_id}, use change-plan instead`)
+    return NextResponse.json(
+      { error: 'You already have an active subscription. Use plan change instead.' },
+      { status: 409 }
+    )
+  }
+
+  console.log(`[Checkout] User ${user.id} requesting ${plan} (${billing})`)
 
   const stripe = getStripe()
   let customerId = profile?.stripe_customer_id
@@ -43,7 +52,6 @@ export async function POST(request: NextRequest) {
     })
     customerId = customer.id
 
-    // Store stripe_customer_id on user
     await supabase
       .from('users')
       .update({ stripe_customer_id: customerId })
@@ -52,7 +60,6 @@ export async function POST(request: NextRequest) {
     console.log(`[Checkout] Stripe customer ${customerId} created and saved`)
   }
 
-  // Create Checkout session with metadata on BOTH session and subscription
   const origin = request.nextUrl.origin
   const priceId = getPriceId(plan, billing)
   console.log(`[Checkout] Using price ID: ${priceId}`)
@@ -63,9 +70,7 @@ export async function POST(request: NextRequest) {
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${origin}/billing?success=true`,
     cancel_url: `${origin}/billing?canceled=true`,
-    // Metadata on the checkout session
     metadata: { userId: user.id, plan, billing },
-    // Metadata on the subscription itself (so webhooks can read it)
     subscription_data: {
       trial_period_days: 7,
       metadata: { userId: user.id, plan },
