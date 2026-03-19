@@ -9,10 +9,10 @@ import Stripe from 'stripe'
 // Supabase admin client (no RLS) for webhooks
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceKey = process.env.SupabaseServiceRoleKey
 
   if (!url || !serviceKey) {
-    throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing')
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL or SupabaseServiceRoleKey is missing')
   }
 
   return createClient(url, serviceKey)
@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
   }
 
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const webhookSecret = process.env.StripeWebhookSecret
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOK_SECRET is missing')
+    console.error('StripeWebhookSecret is missing')
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
   }
 
