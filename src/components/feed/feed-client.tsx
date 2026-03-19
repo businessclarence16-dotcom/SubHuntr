@@ -69,13 +69,14 @@ function timeAgo(dateStr: string): string {
 }
 
 function isFresh(dateStr: string): boolean {
-  return (Date.now() - new Date(dateStr).getTime()) < 2 * 60 * 60 * 1000 // < 2h
+  return (Date.now() - new Date(dateStr).getTime()) < 6 * 60 * 60 * 1000 // < 6h
 }
 
 function freshnessBadge(dateStr: string): { label: string; emoji: string } | null {
   const ageMs = Date.now() - new Date(dateStr).getTime()
   if (ageMs < 15 * 60 * 1000) return { label: 'Just posted', emoji: '\uD83D\uDD25' }
   if (ageMs < 60 * 60 * 1000) return { label: 'Fresh', emoji: '\u26A1' }
+  if (ageMs < 6 * 60 * 60 * 1000) return { label: 'Recent', emoji: '\uD83D\uDD52' }
   return null
 }
 

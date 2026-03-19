@@ -179,10 +179,10 @@ async function searchSubredditPublic(
 
   console.log(`[Reddit] Got ${json.data.children.length} posts from r/${subredditName} for "${keyword}"`)
 
-  // Filter to posts less than 2 hours old — "reply first" strategy
-  const twoHoursAgo = Date.now() / 1000 - 7200
-  const freshChildren = json.data.children.filter((child) => child.data.created_utc > twoHoursAgo)
-  console.log(`[Reddit] After 2h freshness filter: ${freshChildren.length}/${json.data.children.length} posts`)
+  // Filter to posts less than 24 hours old — niche subreddits need a wider window
+  const oneDayAgo = Date.now() / 1000 - 86400
+  const freshChildren = json.data.children.filter((child) => child.data.created_utc > oneDayAgo)
+  console.log(`[Reddit] After 24h freshness filter: ${freshChildren.length}/${json.data.children.length} posts`)
 
   return freshChildren.map((child) => {
     const post = child.data
@@ -265,10 +265,10 @@ async function searchSubredditSnoowrap(
 
   console.log(`[Reddit] [Snoowrap] Got ${(results as unknown[]).length} posts from r/${subredditName}`)
 
-  // Filter to posts less than 2 hours old — "reply first" strategy
-  const twoHoursAgo = Date.now() / 1000 - 7200
-  const freshResults = (results as unknown as SnoowrapPost[]).filter((post) => post.created_utc > twoHoursAgo)
-  console.log(`[Reddit] [Snoowrap] After 2h freshness filter: ${freshResults.length}/${(results as unknown[]).length} posts`)
+  // Filter to posts less than 24 hours old — niche subreddits need a wider window
+  const oneDayAgo = Date.now() / 1000 - 86400
+  const freshResults = (results as unknown as SnoowrapPost[]).filter((post) => post.created_utc > oneDayAgo)
+  console.log(`[Reddit] [Snoowrap] After 24h freshness filter: ${freshResults.length}/${(results as unknown[]).length} posts`)
 
   return freshResults.map((post) => {
     const relevance = calculateRelevanceScore(
