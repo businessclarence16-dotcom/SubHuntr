@@ -1,8 +1,9 @@
 // Client Reddit — utilise l'API officielle (snoowrap) si les clés sont disponibles,
-// sinon les endpoints JSON publics de Reddit comme fallback.
-// Pas besoin de clés API pour le mode public.
+// sinon les flux RSS publics de Reddit (les endpoints JSON sont bloqués depuis les IP cloud).
+// Ordre de fallback RSS : www search → old.reddit search → old.reddit /new + filtre côté code.
 
 import Snoowrap from 'snoowrap'
+import { XMLParser } from 'fast-xml-parser'
 
 // ---------- Types ----------
 
@@ -25,7 +26,7 @@ export interface RedditPost {
 
 let lastRequestTime = 0
 
-async function rateLimitedFetch(url: string): Promise<Response> {
+async function rateLimitedFetch(url: string, accept = 'text/xml'): Promise<Response> {
   const now = Date.now()
   const elapsed = now - lastRequestTime
   if (elapsed < 2000) {
@@ -37,27 +38,14 @@ async function rateLimitedFetch(url: string): Promise<Response> {
 
   console.log(`[Reddit] Fetching: ${url}`)
 
-  let response: Response
-  try {
-    response = await fetch(url, {
-      headers: {
-        'User-Agent': 'SubHuntr/1.0 (by /u/SubHuntr)',
-        'Accept': 'application/json',
-      },
-    })
-  } catch (fetchError) {
-    console.error(`[Reddit] Fetch failed for ${url}:`, fetchError)
-    throw fetchError
-  }
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'SubHuntr/1.0 (by /u/SubHuntr)',
+      'Accept': accept,
+    },
+  })
 
   console.log(`[Reddit] Response status: ${response.status} ${response.statusText}`)
-
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => '(could not read body)')
-    console.error(`[Reddit] Error response body (first 500 chars): ${errorBody.slice(0, 500)}`)
-    throw new Error(`Reddit API error: ${response.status} ${response.statusText} — ${errorBody.slice(0, 200)}`)
-  }
-
   return response
 }
 
@@ -110,105 +98,217 @@ function calculateRelevanceScore(
   return Math.min(Math.max(score, 1), 10)
 }
 
-// ---------- Public JSON client ----------
+// ---------- RSS parser ----------
 
-interface RedditJsonChild {
-  data: {
-    id: string
-    title: string
-    selftext: string
-    author: string
-    subreddit: string
-    permalink: string
-    url: string
-    score: number
-    num_comments: number
-    created_utc: number
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+})
+
+interface RssEntry {
+  title?: string
+  link?: { '@_href'?: string } | { '@_href'?: string }[]
+  updated?: string
+  id?: string
+  author?: { name?: string } | { uri?: string; name?: string }
+  content?: string
+}
+
+/** Strip HTML tags to get plain text */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Extract Reddit ID from RSS <id> tag (format: t3_xxxxx or full URL) */
+function extractRedditId(idStr: string): string {
+  // Format: "t3_abc123" or full URL like "https://www.reddit.com/r/.../comments/abc123/..."
+  const t3Match = idStr.match(/t3_(\w+)/)
+  if (t3Match) return t3Match[1]
+  const urlMatch = idStr.match(/\/comments\/(\w+)/)
+  if (urlMatch) return urlMatch[1]
+  return idStr
+}
+
+/** Extract author name from RSS author field (format: "/u/username") */
+function extractAuthor(author: RssEntry['author']): string {
+  if (!author) return '[deleted]'
+  const name = typeof author === 'object' ? (author.name || '') : String(author)
+  return name.replace(/^\/u\//, '') || '[deleted]'
+}
+
+/** Extract subreddit name from a Reddit URL */
+function extractSubredditFromUrl(url: string): string {
+  const match = url.match(/\/r\/([^/]+)/)
+  return match ? match[1] : ''
+}
+
+/** Extract link href from RSS entry (can be object or array) */
+function extractLink(link: RssEntry['link']): string {
+  if (!link) return ''
+  if (Array.isArray(link)) {
+    const alt = link.find((l) => l['@_href']?.includes('/comments/'))
+    return alt?.['@_href'] || link[0]?.['@_href'] || ''
+  }
+  return link['@_href'] || ''
+}
+
+function parseRssEntries(xmlText: string): RssEntry[] {
+  try {
+    const parsed = xmlParser.parse(xmlText)
+    const feed = parsed?.feed
+    if (!feed?.entry) {
+      console.log(`[Reddit] RSS: no entries found in feed`)
+      return []
+    }
+    // entry can be a single object or an array
+    const entries: RssEntry[] = Array.isArray(feed.entry) ? feed.entry : [feed.entry]
+    return entries
+  } catch (err) {
+    console.error(`[Reddit] RSS parse error:`, err)
+    return []
   }
 }
 
-interface RedditJsonResponse {
-  data?: {
-    children?: RedditJsonChild[]
+function rssEntriesToPosts(
+  entries: RssEntry[],
+  keyword: string,
+  subredditName: string,
+): RedditPost[] {
+  const oneDayAgo = Date.now() / 1000 - 86400
+
+  const posts: RedditPost[] = []
+  for (const entry of entries) {
+    const title = typeof entry.title === 'string' ? entry.title : ''
+    const url = extractLink(entry.link)
+    const updatedStr = typeof entry.updated === 'string' ? entry.updated : ''
+    const createdUtc = updatedStr ? new Date(updatedStr).getTime() / 1000 : 0
+
+    // 24h freshness filter
+    if (createdUtc < oneDayAgo) continue
+
+    const idStr = typeof entry.id === 'string' ? entry.id : url
+    const redditId = extractRedditId(idStr)
+    const body = typeof entry.content === 'string' ? stripHtml(entry.content) : null
+    const author = extractAuthor(entry.author)
+    const subreddit = extractSubredditFromUrl(url) || subredditName
+
+    // RSS doesn't provide score/comments, so default to 0
+    const relevance = calculateRelevanceScore(title, body, keyword, createdUtc, 0)
+
+    posts.push({
+      reddit_id: redditId,
+      title,
+      body,
+      author,
+      subreddit,
+      url: url.startsWith('http') ? url : `https://www.reddit.com${url}`,
+      score: 0,
+      num_comments: 0,
+      matched_keyword: keyword,
+      relevance_score: relevance,
+      reddit_created_at: new Date(createdUtc * 1000).toISOString(),
+      status: 'new',
+    })
   }
-  error?: number
-  message?: string
+
+  return posts
 }
 
-async function searchSubredditPublic(
+// ---------- RSS client with fallback chain ----------
+
+async function searchSubredditRss(
   subredditName: string,
   keyword: string,
 ): Promise<RedditPost[]> {
   const query = encodeURIComponent(keyword)
   const sub = encodeURIComponent(subredditName)
-  const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&limit=25&t=day`
 
-  console.log(`[Reddit] Searching r/${subredditName} for "${keyword}"`)
-  console.log(`[Reddit] URL: ${url}`)
+  // Strategy 1: RSS search on www.reddit.com
+  const url1 = `https://www.reddit.com/r/${sub}/search.rss?q=${query}&sort=new&restrict_sr=on&limit=25&t=day`
+  console.log(`[Reddit] [RSS] Strategy 1: www search — r/${subredditName} for "${keyword}"`)
 
-  const response = await rateLimitedFetch(url)
-
-  let rawText: string
   try {
-    rawText = await response.text()
-  } catch (err) {
-    console.error(`[Reddit] Failed to read response body:`, err)
-    return []
-  }
-
-  console.log(`[Reddit] Raw response (first 500 chars): ${rawText.slice(0, 500)}`)
-
-  let json: RedditJsonResponse
-  try {
-    json = JSON.parse(rawText) as RedditJsonResponse
-  } catch (err) {
-    console.error(`[Reddit] Failed to parse JSON:`, err)
-    console.error(`[Reddit] Body was: ${rawText.slice(0, 1000)}`)
-    return []
-  }
-
-  if (json.error) {
-    console.error(`[Reddit] API error: ${json.error} — ${json.message}`)
-    return []
-  }
-
-  if (!json.data?.children) {
-    console.warn(`[Reddit] No data.children in response. Keys: ${Object.keys(json).join(', ')}`)
-    return []
-  }
-
-  console.log(`[Reddit] Got ${json.data.children.length} posts from r/${subredditName} for "${keyword}"`)
-
-  // Filter to posts less than 24 hours old — niche subreddits need a wider window
-  const oneDayAgo = Date.now() / 1000 - 86400
-  const freshChildren = json.data.children.filter((child) => child.data.created_utc > oneDayAgo)
-  console.log(`[Reddit] After 24h freshness filter: ${freshChildren.length}/${json.data.children.length} posts`)
-
-  return freshChildren.map((child) => {
-    const post = child.data
-    const relevance = calculateRelevanceScore(
-      post.title,
-      post.selftext || null,
-      keyword,
-      post.created_utc,
-      post.num_comments,
-    )
-
-    return {
-      reddit_id: post.id,
-      title: post.title,
-      body: post.selftext || null,
-      author: post.author || '[deleted]',
-      subreddit: post.subreddit || subredditName,
-      url: `https://reddit.com${post.permalink}`,
-      score: post.score,
-      num_comments: post.num_comments,
-      matched_keyword: keyword,
-      relevance_score: relevance,
-      reddit_created_at: new Date(post.created_utc * 1000).toISOString(),
-      status: 'new' as const,
+    const res1 = await rateLimitedFetch(url1)
+    if (res1.ok) {
+      const xml = await res1.text()
+      console.log(`[Reddit] [RSS] Strategy 1 OK — got ${xml.length} chars`)
+      const entries = parseRssEntries(xml)
+      console.log(`[Reddit] [RSS] Strategy 1 parsed ${entries.length} entries`)
+      if (entries.length > 0) {
+        const posts = rssEntriesToPosts(entries, keyword, subredditName)
+        console.log(`[Reddit] [RSS] Strategy 1 → ${posts.length} posts after 24h filter`)
+        return posts
+      }
+      // 0 entries could mean empty results (legit) — still return empty
+      return []
     }
-  })
+    console.log(`[Reddit] [RSS] Strategy 1 failed: ${res1.status} — trying old.reddit.com`)
+  } catch (err) {
+    console.error(`[Reddit] [RSS] Strategy 1 error:`, err)
+  }
+
+  // Strategy 2: RSS search on old.reddit.com
+  const url2 = `https://old.reddit.com/r/${sub}/search.rss?q=${query}&sort=new&restrict_sr=on&limit=25&t=day`
+  console.log(`[Reddit] [RSS] Strategy 2: old.reddit search — r/${subredditName} for "${keyword}"`)
+
+  try {
+    const res2 = await rateLimitedFetch(url2)
+    if (res2.ok) {
+      const xml = await res2.text()
+      console.log(`[Reddit] [RSS] Strategy 2 OK — got ${xml.length} chars`)
+      const entries = parseRssEntries(xml)
+      console.log(`[Reddit] [RSS] Strategy 2 parsed ${entries.length} entries`)
+      if (entries.length > 0) {
+        const posts = rssEntriesToPosts(entries, keyword, subredditName)
+        console.log(`[Reddit] [RSS] Strategy 2 → ${posts.length} posts after 24h filter`)
+        return posts
+      }
+      return []
+    }
+    console.log(`[Reddit] [RSS] Strategy 2 failed: ${res2.status} — trying /new fallback`)
+  } catch (err) {
+    console.error(`[Reddit] [RSS] Strategy 2 error:`, err)
+  }
+
+  // Strategy 3: RSS /new on old.reddit.com + client-side keyword filter
+  const url3 = `https://old.reddit.com/r/${sub}/new.rss?limit=25`
+  console.log(`[Reddit] [RSS] Strategy 3: old.reddit /new + keyword filter — r/${subredditName}`)
+
+  try {
+    const res3 = await rateLimitedFetch(url3)
+    if (res3.ok) {
+      const xml = await res3.text()
+      console.log(`[Reddit] [RSS] Strategy 3 OK — got ${xml.length} chars`)
+      const entries = parseRssEntries(xml)
+      console.log(`[Reddit] [RSS] Strategy 3 parsed ${entries.length} entries`)
+      const allPosts = rssEntriesToPosts(entries, keyword, subredditName)
+      console.log(`[Reddit] [RSS] Strategy 3 → ${allPosts.length} posts after 24h filter`)
+
+      // Client-side keyword filter since /new doesn't filter by keyword
+      const lowerKeyword = keyword.toLowerCase()
+      const filtered = allPosts.filter((p) => {
+        const text = `${p.title} ${p.body || ''}`.toLowerCase()
+        return text.includes(lowerKeyword)
+      })
+      console.log(`[Reddit] [RSS] Strategy 3 → ${filtered.length} posts after keyword filter "${keyword}"`)
+      return filtered
+    }
+    console.log(`[Reddit] [RSS] Strategy 3 failed: ${res3.status}`)
+  } catch (err) {
+    console.error(`[Reddit] [RSS] Strategy 3 error:`, err)
+  }
+
+  console.error(`[Reddit] [RSS] All 3 strategies failed for r/${subredditName} + "${keyword}"`)
+  return []
 }
 
 // ---------- Snoowrap client (when API keys are available) ----------
@@ -310,20 +410,20 @@ export function hasOfficialApiCredentials(): boolean {
 
 /**
  * Search a subreddit for posts matching a keyword.
- * Uses snoowrap if API credentials are available, otherwise public JSON endpoints.
+ * Uses snoowrap if API credentials are available, otherwise RSS feeds with fallback chain.
  */
 export async function searchSubreddit(
   subredditName: string,
   keyword: string,
 ): Promise<RedditPost[]> {
-  const mode = hasOfficialApiCredentials() ? 'snoowrap' : 'public'
+  const mode = hasOfficialApiCredentials() ? 'snoowrap' : 'rss'
   console.log(`[Reddit] searchSubreddit("${subredditName}", "${keyword}") — mode: ${mode}`)
 
   try {
     if (mode === 'snoowrap') {
       return await searchSubredditSnoowrap(subredditName, keyword)
     }
-    return await searchSubredditPublic(subredditName, keyword)
+    return await searchSubredditRss(subredditName, keyword)
   } catch (err) {
     console.error(`[Reddit] searchSubreddit failed for r/${subredditName} + "${keyword}":`, err)
     return []
