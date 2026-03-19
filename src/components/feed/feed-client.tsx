@@ -54,7 +54,7 @@ interface FeedClientProps {
   subreddits: string[]
 }
 
-type QuickFilter = 'all' | 'high-intent' | 'new' | 'saved'
+type QuickFilter = 'fresh' | 'all' | 'high-intent' | 'new' | 'saved'
 type SortOption = 'date' | 'score' | 'relevance' | 'comments'
 
 function timeAgo(dateStr: string): string {
@@ -68,11 +68,22 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+function isFresh(dateStr: string): boolean {
+  return (Date.now() - new Date(dateStr).getTime()) < 2 * 60 * 60 * 1000 // < 2h
+}
+
+function freshnessBadge(dateStr: string): { label: string; emoji: string } | null {
+  const ageMs = Date.now() - new Date(dateStr).getTime()
+  if (ageMs < 15 * 60 * 1000) return { label: 'Just posted', emoji: '\uD83D\uDD25' }
+  if (ageMs < 60 * 60 * 1000) return { label: 'Fresh', emoji: '\u26A1' }
+  return null
+}
+
 export function FeedClient({ projectId, projectName, posts: initialPosts, keywords, subreddits }: FeedClientProps) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState<string | null>(null)
-  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('fresh')
   const [filterKeyword, setFilterKeyword] = useState<string>('all')
   const [filterSubreddit, setFilterSubreddit] = useState<string>('all')
   const [sortBy, setSortBy] = useState<SortOption>('date')
@@ -136,10 +147,14 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
     }
   }
 
+  // Count fresh posts for the badge
+  const freshCount = posts.filter((p) => isFresh(p.reddit_created_at)).length
+
   // Apply filters
   const filteredPosts = posts
     .filter((post) => {
       // Quick filter
+      if (quickFilter === 'fresh' && !isFresh(post.reddit_created_at)) return false
       if (quickFilter === 'high-intent' && (post.relevance_score ?? 0) < 7) return false
       if (quickFilter === 'new' && post.status !== 'new') return false
       if (quickFilter === 'saved' && post.status !== 'saved') return false
@@ -163,7 +178,8 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
     })
 
   const quickFilters: { key: QuickFilter; label: string }[] = [
-    { key: 'all', label: 'All' },
+    { key: 'fresh', label: `Fresh (${freshCount})` },
+    { key: 'all', label: 'All posts' },
     { key: 'high-intent', label: 'High-intent (7+)' },
     { key: 'new', label: 'Unread' },
     { key: 'saved', label: 'Saved' },
@@ -305,7 +321,11 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
             className="mb-2 text-[1.1rem] font-[700] text-[#fafafa]"
             style={{ letterSpacing: '-0.02em' }}
           >
-            {posts.length === 0 ? 'No posts yet' : 'No posts match your filters'}
+            {posts.length === 0
+              ? 'No posts yet'
+              : quickFilter === 'fresh'
+                ? 'No fresh leads right now'
+                : 'No posts match your filters'}
           </h3>
           {posts.length === 0 ? (
             <div className="space-y-3">
@@ -328,6 +348,19 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                   <Inbox className="h-3.5 w-3.5" /> Add subreddits
                 </Link>
               </div>
+            </div>
+          ) : quickFilter === 'fresh' ? (
+            <div className="space-y-3">
+              <p className="text-[0.82rem] text-[#a1a1aa]">
+                SubHuntr scans every few minutes — check back soon.
+              </p>
+              <button
+                onClick={() => setQuickFilter('all')}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-[rgba(255,255,255,0.06)] px-4 py-2 text-[0.82rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+                style={{ transition: 'all 0.2s' }}
+              >
+                View all posts
+              </button>
             </div>
           ) : (
             <p className="text-[0.82rem] text-[#a1a1aa]">
@@ -376,6 +409,11 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                   <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[0.68rem] text-[#52525b]">
                     <span className="font-medium text-[#1D9E75]">r/{post.subreddit}</span>
                     <span>{timeAgo(post.reddit_created_at)}</span>
+                    {freshnessBadge(post.reddit_created_at) && (
+                      <span className="rounded-full bg-[rgba(245,158,11,0.1)] px-2 py-0.5 text-[0.6rem] font-semibold text-[#f59e0b]">
+                        {freshnessBadge(post.reddit_created_at)!.emoji} {freshnessBadge(post.reddit_created_at)!.label}
+                      </span>
+                    )}
                     <span className="flex items-center gap-0.5">
                       <MessageSquare className="h-2.5 w-2.5" /> {post.num_comments}
                     </span>

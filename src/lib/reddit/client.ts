@@ -94,9 +94,11 @@ function calculateRelevanceScore(
   const hasBuyingIntent = BUYING_INTENT_WORDS.some((word) => combined.includes(word))
   if (hasBuyingIntent) score += 2
 
-  // Recent post (< 24h) → +1
-  const ageHours = (Date.now() / 1000 - createdUtc) / 3600
-  if (ageHours < 24) score += 1
+  // Freshness scoring — ultra-recent posts get more points
+  const ageMinutes = (Date.now() / 1000 - createdUtc) / 60
+  if (ageMinutes < 30) score += 3        // < 30 min → +3
+  else if (ageMinutes < 60) score += 2   // < 1h → +2
+  else if (ageMinutes < 120) score += 1  // < 2h → +1
 
   // Many comments (> 10) → +1
   if (numComments > 10) score += 1
@@ -139,7 +141,7 @@ async function searchSubredditPublic(
 ): Promise<RedditPost[]> {
   const query = encodeURIComponent(keyword)
   const sub = encodeURIComponent(subredditName)
-  const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&limit=25&t=week`
+  const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=new&restrict_sr=on&limit=25&t=day`
 
   console.log(`[Reddit] Searching r/${subredditName} for "${keyword}"`)
   console.log(`[Reddit] URL: ${url}`)
@@ -177,7 +179,12 @@ async function searchSubredditPublic(
 
   console.log(`[Reddit] Got ${json.data.children.length} posts from r/${subredditName} for "${keyword}"`)
 
-  return json.data.children.map((child) => {
+  // Filter to posts less than 2 hours old — "reply first" strategy
+  const twoHoursAgo = Date.now() / 1000 - 7200
+  const freshChildren = json.data.children.filter((child) => child.data.created_utc > twoHoursAgo)
+  console.log(`[Reddit] After 2h freshness filter: ${freshChildren.length}/${json.data.children.length} posts`)
+
+  return freshChildren.map((child) => {
     const post = child.data
     const relevance = calculateRelevanceScore(
       post.title,
@@ -251,14 +258,19 @@ async function searchSubredditSnoowrap(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const results = await (reddit.getSubreddit(subredditName) as any).search({
     query: keyword,
-    time: 'week',
+    time: 'day',
     sort: 'new',
     limit: 25,
   })
 
   console.log(`[Reddit] [Snoowrap] Got ${(results as unknown[]).length} posts from r/${subredditName}`)
 
-  return (results as unknown as SnoowrapPost[]).map((post) => {
+  // Filter to posts less than 2 hours old — "reply first" strategy
+  const twoHoursAgo = Date.now() / 1000 - 7200
+  const freshResults = (results as unknown as SnoowrapPost[]).filter((post) => post.created_utc > twoHoursAgo)
+  console.log(`[Reddit] [Snoowrap] After 2h freshness filter: ${freshResults.length}/${(results as unknown[]).length} posts`)
+
+  return freshResults.map((post) => {
     const relevance = calculateRelevanceScore(
       post.title,
       post.selftext || null,
