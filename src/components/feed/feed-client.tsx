@@ -106,8 +106,8 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         setScanResult(`Error: ${data.error}`)
         if (data.upgrade) setShowUpgrade(true)
       } else {
-        const mockNote = data.mock ? ' (demo mode — configure Reddit keys for real posts)' : ''
-        setScanResult(`Scan complete! ${data.postsFound} new post(s) found.${mockNote}`)
+        const modeNote = data.mode === 'public' ? ' (public API — official API pending)' : ''
+        setScanResult(`Scan complete! ${data.postsFound} new post(s) found.${modeNote}`)
         router.refresh()
       }
     } catch {
