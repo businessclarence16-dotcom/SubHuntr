@@ -1,13 +1,16 @@
-// Billing client — pricing plans with premium dark theme matching landing page
+// Billing client — pricing plans, subscription management, premium dark theme
 
 'use client'
 
-import { useState } from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Check, Loader2, CreditCard, FileText, X as XIcon, CheckCircle } from 'lucide-react'
 import { Plan } from '@/types'
 
 interface BillingClientProps {
   plan: Plan
+  stripeCustomerId: string | null
+  stripeSubscriptionId: string | null
 }
 
 const plans = [
@@ -78,11 +81,31 @@ const plans = [
   },
 ]
 
-export function BillingClient({ plan }: BillingClientProps) {
+const cardStyle: React.CSSProperties = {
+  background: '#131316',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: 14,
+  boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 30px 80px rgba(0,0,0,.6), 0 0 120px rgba(29,158,117,0.08)',
+}
+
+export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId }: BillingClientProps) {
   const [annual, setAnnual] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const searchParams = useSearchParams()
 
   const planOrder: Plan[] = ['starter', 'growth', 'agency', 'enterprise']
+  const hasSubscription = !!stripeSubscriptionId
+
+  // Show success banner if redirected from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      setShowSuccess(true)
+      const timer = setTimeout(() => setShowSuccess(false), 8000)
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams])
 
   async function handleCheckout(targetPlan: 'starter' | 'growth' | 'agency') {
     setLoading(targetPlan)
@@ -101,8 +124,57 @@ export function BillingClient({ plan }: BillingClientProps) {
     }
   }
 
+  async function openPortal() {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch {
+      setPortalLoading(false)
+    }
+  }
+
   return (
     <div style={{ maxWidth: 1120, margin: '0 auto' }}>
+      {/* ── Success banner ── */}
+      {showSuccess && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 20px',
+            marginBottom: 24,
+            background: 'rgba(29,158,117,0.1)',
+            border: '1px solid rgba(29,158,117,0.25)',
+            borderRadius: 12,
+            color: '#34d399',
+            fontSize: '.88rem',
+            fontWeight: 600,
+          }}
+        >
+          <CheckCircle size={18} />
+          Your plan has been upgraded successfully!
+          <button
+            onClick={() => setShowSuccess(false)}
+            style={{
+              marginLeft: 'auto',
+              background: 'none',
+              border: 'none',
+              color: '#34d399',
+              cursor: 'pointer',
+              padding: 2,
+            }}
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="animate-fade-in-up" style={{ textAlign: 'center', marginBottom: 14 }}>
         <h1
@@ -121,6 +193,97 @@ export function BillingClient({ plan }: BillingClientProps) {
           Manage your subscription and plan
         </p>
       </div>
+
+      {/* ── Subscription management buttons ── */}
+      {hasSubscription && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            ...cardStyle,
+            padding: '20px 28px',
+            marginBottom: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            animationDelay: '0.03s',
+          }}
+        >
+          <div>
+            <p style={{ fontSize: '.88rem', fontWeight: 600, color: '#fafafa', marginBottom: 2 }}>
+              Active subscription
+            </p>
+            <p style={{ fontSize: '.78rem', color: '#52525b' }}>
+              Manage your payment method, invoices, or cancel your subscription
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={openPortal}
+              disabled={portalLoading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: '.78rem',
+                fontWeight: 600,
+                background: 'rgba(255,255,255,0.05)',
+                color: '#fafafa',
+                border: '1px solid rgba(255,255,255,0.06)',
+                cursor: portalLoading ? 'wait' : 'pointer',
+                transition: 'all .2s',
+              }}
+            >
+              <CreditCard size={14} />
+              Manage payment method
+            </button>
+            <button
+              onClick={openPortal}
+              disabled={portalLoading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: '.78rem',
+                fontWeight: 600,
+                background: 'rgba(255,255,255,0.05)',
+                color: '#fafafa',
+                border: '1px solid rgba(255,255,255,0.06)',
+                cursor: portalLoading ? 'wait' : 'pointer',
+                transition: 'all .2s',
+              }}
+            >
+              <FileText size={14} />
+              View invoices
+            </button>
+            <button
+              onClick={openPortal}
+              disabled={portalLoading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: '.78rem',
+                fontWeight: 600,
+                background: 'rgba(239,68,68,0.08)',
+                color: '#ef4444',
+                border: '1px solid rgba(239,68,68,0.15)',
+                cursor: portalLoading ? 'wait' : 'pointer',
+                transition: 'all .2s',
+              }}
+            >
+              Cancel subscription
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Monthly / Annual toggle ── */}
       <div
@@ -245,6 +408,28 @@ export function BillingClient({ plan }: BillingClientProps) {
                   }}
                 >
                   Popular
+                </div>
+              )}
+
+              {/* Current plan badge */}
+              {isCurrent && !p.popular && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -9,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(29,158,117,0.15)',
+                    color: '#1D9E75',
+                    padding: '2px 12px',
+                    borderRadius: 100,
+                    fontSize: '.65rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.06em',
+                  }}
+                >
+                  Current
                 </div>
               )}
 
@@ -418,7 +603,7 @@ export function BillingClient({ plan }: BillingClientProps) {
           animationDelay: '0.15s',
         }}
       >
-        Payment will be available at launch. All plans include a 7-day free trial.
+        All plans include a 7-day free trial. Cancel anytime.
       </p>
     </div>
   )

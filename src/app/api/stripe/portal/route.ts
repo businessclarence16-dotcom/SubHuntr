@@ -1,4 +1,4 @@
-// API Route pour créer une session Stripe Customer Portal (gérer abonnement)
+// API Route to create a Stripe Customer Portal session
 // POST /api/stripe/portal
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
   const { data: profile } = await supabase
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (!profile?.stripe_customer_id) {
-    return NextResponse.json({ error: 'Pas d\'abonnement Stripe' }, { status: 400 })
+    return NextResponse.json({ error: 'No active Stripe subscription' }, { status: 400 })
   }
 
   const stripe = getStripe()

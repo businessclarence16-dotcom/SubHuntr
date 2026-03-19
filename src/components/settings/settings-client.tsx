@@ -4,7 +4,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, User, FolderOpen, Bell, Shield, AlertTriangle } from 'lucide-react'
+import { Loader2, User, FolderOpen, Bell, Shield, AlertTriangle, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface SettingsClientProps {
   user: {
@@ -82,6 +83,14 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
 
+  // Password
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [passwordMsg, setPasswordMsg] = useState<{ text: string; error: boolean } | null>(null)
+
   // Project
   const [projectName, setProjectName] = useState(project?.name ?? '')
   const [projectUrl, setProjectUrl] = useState(project?.url ?? '')
@@ -93,6 +102,11 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
   const [emailNewPosts, setEmailNewPosts] = useState(true)
   const [emailHighIntent, setEmailHighIntent] = useState(true)
   const [emailWeeklyDigest, setEmailWeeklyDigest] = useState(false)
+
+  // Account deletion
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   async function saveProfile() {
     setSavingProfile(true)
@@ -110,6 +124,33 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
       }
     } finally {
       setSavingProfile(false)
+    }
+  }
+
+  async function changePassword() {
+    if (newPassword.length < 6) {
+      setPasswordMsg({ text: 'Password must be at least 6 characters', error: true })
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ text: 'Passwords do not match', error: true })
+      return
+    }
+    setSavingPassword(true)
+    setPasswordMsg(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) {
+        setPasswordMsg({ text: error.message, error: true })
+      } else {
+        setPasswordMsg({ text: 'Password updated successfully!', error: false })
+        setNewPassword('')
+        setConfirmPassword('')
+        setTimeout(() => setPasswordMsg(null), 3000)
+      }
+    } finally {
+      setSavingPassword(false)
     }
   }
 
@@ -138,6 +179,23 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
       }
     } finally {
       setSavingProject(false)
+    }
+  }
+
+  async function deleteAccount() {
+    if (deleteConfirmation !== 'DELETE') return
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: 'DELETE' }),
+      })
+      if (res.ok) {
+        window.location.href = '/'
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -241,64 +299,172 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
 
       {/* ── Profile Tab ── */}
       {activeTab === 'profile' && (
-        <div className="animate-fade-in-up" style={{ ...cardStyle, padding: '28px 32px' }}>
-          <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa', marginBottom: 4 }}>
-            Personal Information
-          </h2>
-          <p style={{ color: '#52525b', fontSize: '.82rem', marginBottom: 24 }}>
-            Update your profile details
-          </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Personal info card */}
+          <div className="animate-fade-in-up" style={{ ...cardStyle, padding: '28px 32px' }}>
+            <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa', marginBottom: 4 }}>
+              Personal Information
+            </h2>
+            <p style={{ color: '#52525b', fontSize: '.82rem', marginBottom: 24 }}>
+              Update your profile details
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
-                Email
-              </label>
-              <input
-                value={user.email}
-                disabled
-                style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }}
-              />
-              <p style={{ marginTop: 4, fontSize: '.72rem', color: '#52525b' }}>
-                Email cannot be changed
-              </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                  Email
+                </label>
+                <input
+                  value={user.email}
+                  disabled
+                  style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }}
+                />
+                <p style={{ marginTop: 4, fontSize: '.72rem', color: '#52525b' }}>
+                  Contact support to change email
+                </p>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                  Full name
+                </label>
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Your name"
+                  style={inputStyle}
+                  onFocus={focusInput}
+                  onBlur={blurInput}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  style={{
+                    ...btnPrimary,
+                    opacity: savingProfile ? 0.5 : 1,
+                    pointerEvents: savingProfile ? 'none' : 'auto',
+                  }}
+                  onClick={saveProfile}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#17805f'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1D9E75'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                >
+                  {savingProfile && <Loader2 size={15} className="animate-spin" />}
+                  Save
+                </button>
+                {profileSaved && (
+                  <span style={{ fontSize: '.82rem', color: '#1D9E75', fontWeight: 600 }}>Profile updated!</span>
+                )}
+              </div>
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
-                Full name
-              </label>
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Your name"
-                style={inputStyle}
-                onFocus={focusInput}
-                onBlur={blurInput}
-              />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                style={{
-                  ...btnPrimary,
-                  opacity: savingProfile ? 0.5 : 1,
-                  pointerEvents: savingProfile ? 'none' : 'auto',
-                }}
-                onClick={saveProfile}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#17805f'
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#1D9E75'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                }}
-              >
-                {savingProfile && <Loader2 size={15} className="animate-spin" />}
-                Save
-              </button>
-              {profileSaved && (
-                <span style={{ fontSize: '.82rem', color: '#1D9E75', fontWeight: 600 }}>Profile updated!</span>
-              )}
+          </div>
+
+          {/* Change password card */}
+          <div className="animate-fade-in-up" style={{ ...cardStyle, padding: '28px 32px', animationDelay: '0.06s' }}>
+            <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa', marginBottom: 4 }}>
+              Change Password
+            </h2>
+            <p style={{ color: '#52525b', fontSize: '.82rem', marginBottom: 24 }}>
+              Update your account password
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                  New password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    style={{ ...inputStyle, paddingRight: 44 }}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#52525b',
+                      cursor: 'pointer',
+                      padding: 2,
+                    }}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                  Confirm password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
+                    style={{ ...inputStyle, paddingRight: 44 }}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#52525b',
+                      cursor: 'pointer',
+                      padding: 2,
+                    }}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  style={{
+                    ...btnPrimary,
+                    opacity: savingPassword || !newPassword || !confirmPassword ? 0.5 : 1,
+                    pointerEvents: savingPassword || !newPassword || !confirmPassword ? 'none' : 'auto',
+                  }}
+                  onClick={changePassword}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#17805f'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1D9E75'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                >
+                  {savingPassword && <Loader2 size={15} className="animate-spin" />}
+                  Update password
+                </button>
+                {passwordMsg && (
+                  <span style={{ fontSize: '.82rem', color: passwordMsg.error ? '#ef4444' : '#1D9E75', fontWeight: 600 }}>
+                    {passwordMsg.text}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -441,29 +607,51 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
             <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa', marginBottom: 12 }}>
               Current Plan
             </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    background: 'rgba(29,158,117,0.12)',
+                    color: '#1D9E75',
+                    fontSize: '.75rem',
+                    fontWeight: 700,
+                    padding: '4px 14px',
+                    borderRadius: 100,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'uppercase',
+                    letterSpacing: '.06em',
+                  }}
+                >
+                  {user.plan}
+                </span>
+                {user.plan === 'starter' && (
+                  <span style={{ fontSize: '.82rem', color: '#a1a1aa' }}>
+                    Upgrade for more features
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => router.push('/billing')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  background: 'rgba(29,158,117,0.12)',
-                  color: '#1D9E75',
-                  fontSize: '.75rem',
-                  fontWeight: 700,
-                  padding: '4px 14px',
-                  borderRadius: 100,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  textTransform: 'uppercase',
-                  letterSpacing: '.06em',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontSize: '.78rem',
+                  fontWeight: 600,
+                  background: 'rgba(255,255,255,0.05)',
+                  color: '#fafafa',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  cursor: 'pointer',
+                  transition: 'all .2s',
                 }}
               >
-                {user.plan}
-              </span>
-              {user.plan === 'starter' && (
-                <span style={{ fontSize: '.82rem', color: '#a1a1aa' }}>
-                  Upgrade to Growth for more features
-                </span>
-              )}
+                Manage billing
+                <ArrowRight size={14} />
+              </button>
             </div>
           </div>
 
@@ -482,10 +670,10 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
               <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa' }}>Danger Zone</h2>
             </div>
             <p style={{ color: '#52525b', fontSize: '.82rem', marginBottom: 16 }}>
-              Irreversible actions
+              This action is permanent and cannot be undone. All your data will be deleted.
             </p>
             <button
-              disabled
+              onClick={() => setShowDeleteDialog(true)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -497,15 +685,106 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
                 fontWeight: 600,
                 fontSize: '.85rem',
                 border: '1px solid rgba(239,68,68,0.2)',
-                cursor: 'not-allowed',
-                opacity: 0.6,
+                cursor: 'pointer',
+                transition: 'all .2s',
               }}
             >
               Delete my account
             </button>
-            <p style={{ marginTop: 8, fontSize: '.72rem', color: '#52525b' }}>
-              This feature will be available soon.
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete account confirmation dialog ── */}
+      {showDeleteDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: 24,
+          }}
+          onClick={() => setShowDeleteDialog(false)}
+        >
+          <div
+            style={{
+              ...cardStyle,
+              padding: '32px',
+              maxWidth: 440,
+              width: '100%',
+              borderColor: 'rgba(239,68,68,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <AlertTriangle size={20} style={{ color: '#ef4444' }} />
+              <h3 style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fafafa' }}>Delete your account</h3>
+            </div>
+            <p style={{ color: '#a1a1aa', fontSize: '.85rem', lineHeight: 1.6, marginBottom: 20 }}>
+              This will permanently delete your account, all projects, keywords, subreddits, and data.
+              This action cannot be undone.
             </p>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                Type <span style={{ color: '#ef4444', fontFamily: "'JetBrains Mono', monospace" }}>DELETE</span> to confirm
+              </label>
+              <input
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+                style={inputStyle}
+                onFocus={focusInput}
+                onBlur={blurInput}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteDialog(false)
+                  setDeleteConfirmation('')
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 10,
+                  fontSize: '.85rem',
+                  fontWeight: 600,
+                  background: 'transparent',
+                  color: '#a1a1aa',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteAccount}
+                disabled={deleteConfirmation !== 'DELETE' || deleting}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '10px 20px',
+                  borderRadius: 10,
+                  fontSize: '.85rem',
+                  fontWeight: 600,
+                  background: deleteConfirmation === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.1)',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: deleteConfirmation === 'DELETE' && !deleting ? 'pointer' : 'not-allowed',
+                  opacity: deleteConfirmation === 'DELETE' ? 1 : 0.5,
+                  transition: 'all .2s',
+                }}
+              >
+                {deleting && <Loader2 size={14} className="animate-spin" />}
+                {deleting ? 'Deleting...' : 'Delete my account'}
+              </button>
+            </div>
           </div>
         </div>
       )}
