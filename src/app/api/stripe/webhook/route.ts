@@ -1,18 +1,18 @@
-// Webhook Stripe — gère les événements d'abonnement
-// POST /api/stripe/webhook (appelé par Stripe)
+// Webhook Stripe — handles subscription events
+// POST /api/stripe/webhook (called by Stripe)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getStripe } from '@/lib/stripe/client'
+import { getStripe, getPlanFromPriceId } from '@/lib/stripe/client'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-// Client Supabase admin (pas de RLS) pour les webhooks
+// Supabase admin client (no RLS) for webhooks
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!url || !serviceKey) {
-    throw new Error('Variables Supabase admin manquantes')
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing')
   }
 
   return createClient(url, serviceKey)
@@ -23,13 +23,13 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature')
 
   if (!signature) {
-    return NextResponse.json({ error: 'Signature manquante' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
   }
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOK_SECRET manquante')
-    return NextResponse.json({ error: 'Configuration webhook manquante' }, { status: 500 })
+    console.error('STRIPE_WEBHOOK_SECRET is missing')
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
   }
 
   const stripe = getStripe()
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error('Erreur vérification signature webhook:', err)
-    return NextResponse.json({ error: 'Signature invalide' }, { status: 400 })
+    console.error('Webhook signature verification failed:', err)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
   const supabase = getSupabaseAdmin()
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription
       const customerId = subscription.customer as string
 
-      // Trouve l'utilisateur par customer ID
+      // Find user by customer ID
       const { data: user } = await supabase
         .from('users')
         .select('id')
@@ -75,13 +75,16 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (user) {
-        // Détermine le plan par le price ID
+        // Determine plan from price ID using reverse lookup
         const priceId = subscription.items.data[0]?.price.id
-        let plan = 'starter'
-        if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) plan = 'growth'
-        if (priceId === process.env.STRIPE_AGENCY_PRICE_ID) plan = 'agency'
+        let plan: string = 'starter'
 
-        // Si l'abonnement est annulé, revient à starter
+        if (priceId) {
+          const detectedPlan = getPlanFromPriceId(priceId)
+          if (detectedPlan) plan = detectedPlan
+        }
+
+        // If subscription is canceled, revert to starter
         if (subscription.cancel_at_period_end || subscription.status !== 'active') {
           plan = 'starter'
         }

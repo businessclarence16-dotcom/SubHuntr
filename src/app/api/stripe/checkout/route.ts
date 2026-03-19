@@ -1,5 +1,5 @@
 // API Route pour créer une session Stripe Checkout
-// POST /api/stripe/checkout { plan: 'pro' | 'business' }
+// POST /api/stripe/checkout { plan: 'starter' | 'growth' | 'agency', billing: 'monthly' | 'annual' }
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -10,16 +10,20 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { plan } = await request.json()
+  const { plan, billing } = await request.json()
 
-  if (!plan || !['growth', 'agency'].includes(plan)) {
-    return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
+  if (!plan || !['starter', 'growth', 'agency'].includes(plan)) {
+    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
-  // Récupère ou crée le customer Stripe
+  if (!billing || !['monthly', 'annual'].includes(billing)) {
+    return NextResponse.json({ error: 'Invalid billing period' }, { status: 400 })
+  }
+
+  // Get or create Stripe customer
   const { data: profile } = await supabase
     .from('users')
     .select('stripe_customer_id, email')
@@ -42,15 +46,18 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
   }
 
-  // Crée la session Checkout
+  // Create Checkout session
   const origin = request.nextUrl.origin
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
-    line_items: [{ price: getPriceId(plan), quantity: 1 }],
+    line_items: [{ price: getPriceId(plan, billing), quantity: 1 }],
     success_url: `${origin}/billing?success=true`,
     cancel_url: `${origin}/billing?canceled=true`,
-    metadata: { supabase_user_id: user.id, plan },
+    subscription_data: {
+      trial_period_days: 7,
+    },
+    metadata: { supabase_user_id: user.id, plan, billing },
   })
 
   return NextResponse.json({ url: session.url })

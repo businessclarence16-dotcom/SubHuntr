@@ -3,7 +3,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { Plan } from '@/types'
 
 interface BillingClientProps {
@@ -80,8 +80,26 @@ const plans = [
 
 export function BillingClient({ plan }: BillingClientProps) {
   const [annual, setAnnual] = useState(false)
+  const [loading, setLoading] = useState<string | null>(null)
 
   const planOrder: Plan[] = ['starter', 'growth', 'agency', 'enterprise']
+
+  async function handleCheckout(targetPlan: 'starter' | 'growth' | 'agency') {
+    setLoading(targetPlan)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch {
+      setLoading(null)
+    }
+  }
 
   return (
     <div style={{ maxWidth: 1120, margin: '0 auto' }}>
@@ -335,9 +353,13 @@ export function BillingClient({ plan }: BillingClientProps) {
                 </button>
               ) : isUpgrade ? (
                 <button
-                  disabled
+                  onClick={() => handleCheckout(p.id as 'starter' | 'growth' | 'agency')}
+                  disabled={loading === p.id}
                   style={{
-                    display: 'block',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
                     width: '100%',
                     padding: 10,
                     borderRadius: 8,
@@ -347,12 +369,13 @@ export function BillingClient({ plan }: BillingClientProps) {
                     background: p.popular ? '#1D9E75' : 'rgba(255,255,255,0.05)',
                     color: p.popular ? '#fff' : '#fafafa',
                     border: p.popular ? '1px solid #1D9E75' : '1px solid rgba(255,255,255,0.06)',
-                    cursor: 'not-allowed',
+                    cursor: loading === p.id ? 'wait' : 'pointer',
                     marginBottom: 20,
                     transition: 'all .2s',
                   }}
                 >
-                  Upgrade to {p.name}
+                  {loading === p.id && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {loading === p.id ? 'Redirecting...' : `Upgrade to ${p.name}`}
                 </button>
               ) : (
                 <div style={{ marginBottom: 20 }} />
