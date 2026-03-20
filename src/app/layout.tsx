@@ -21,6 +21,22 @@ export const metadata: Metadata = {
   title: 'SubHuntr — Find Buyers on Reddit Before Your Competitors Do',
   description:
     'Monitor Reddit for high-intent buyers. Score leads 1-10, get instant alerts, reply with proven templates. From $29/mo.',
+  openGraph: {
+    title: 'SubHuntr — Find Buyers on Reddit Before Your Competitors Do',
+    description: 'Monitor Reddit for high-intent buyers. Score leads 1-10, get instant alerts, reply with proven templates. From $29/mo.',
+    type: 'website',
+    url: 'https://subhuntr.com',
+    images: [{ url: 'https://subhuntr.com/opengraph-image', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SubHuntr — Find Buyers on Reddit Before Your Competitors Do',
+    description: 'Monitor Reddit for high-intent buyers. Score leads 1-10, get instant alerts, reply with proven templates.',
+    images: ['https://subhuntr.com/opengraph-image'],
+  },
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({

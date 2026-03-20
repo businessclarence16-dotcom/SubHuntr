@@ -343,17 +343,17 @@ export function LandingPage() {
             <div className="tc rv">
               <div className="tc-res">3 customers</div><div className="tc-rl">In the first 7 days</div>
               <div className="tc-txt">&quot;I used to spend 30 min every morning manually searching Reddit. SubHuntr replaced all of that. Closed 3 paying users in week one.&quot;</div>
-              <div className="tc-a"><div className="tc-av">MK</div><div><div className="tc-nm">Marc K.</div><div className="tc-ro">CRM startup · Growth</div></div><div className="tc-v">✓ Verified</div></div>
+              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Founder of a B2B CRM</div><div className="tc-ro">Early access user</div></div></div>
             </div>
             <div className="tc rv">
               <div className="tc-res">12x cheaper</div><div className="tc-rl">Than Google Ads CPA</div>
               <div className="tc-txt">&quot;CPA from Reddit: $6.40. Google Ads: $78. We shifted 40% of our paid budget to SubHuntr.&quot;</div>
-              <div className="tc-a"><div className="tc-av">SL</div><div><div className="tc-nm">Sarah L.</div><div className="tc-ro">Head of Growth · Agency</div></div><div className="tc-v">✓ Verified</div></div>
+              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Head of Growth at a SaaS startup</div><div className="tc-ro">Early access user</div></div></div>
             </div>
             <div className="tc rv">
               <div className="tc-res">47 leads/wk</div><div className="tc-rl">High-intent (score 7+)</div>
               <div className="tc-txt">&quot;Every time someone complains about Intercom, I get an alert. Like having a sales rep on Reddit 24/7.&quot;</div>
-              <div className="tc-a"><div className="tc-av">JP</div><div><div className="tc-nm">James P.</div><div className="tc-ro">Live chat tool · Growth</div></div><div className="tc-v">✓ Verified</div></div>
+              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Solo founder, developer tools</div><div className="tc-ro">Early access user</div></div></div>
             </div>
           </div>
           <div className="comp-lbl rv">How we compare to alternatives</div>
