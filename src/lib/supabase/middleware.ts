@@ -48,8 +48,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === '/privacy' ||
     request.nextUrl.pathname === '/terms' ||
     request.nextUrl.pathname === '/contact'
+  const isSeoFile =
+    request.nextUrl.pathname === '/sitemap.xml' ||
+    request.nextUrl.pathname === '/robots.txt'
   const isPublicPage =
-    isAuthPage || request.nextUrl.pathname === '/' || isApiWebhook || isLegalPage
+    isAuthPage || request.nextUrl.pathname === '/' || isApiWebhook || isLegalPage || isSeoFile
 
   if (!user && !isPublicPage) {
     const url = request.nextUrl.clone()

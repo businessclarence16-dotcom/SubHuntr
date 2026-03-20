@@ -1,9 +1,11 @@
 // Signup page — premium dark theme matching landing page exactly
+// Shows "Check your inbox" screen after successful signup
 
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useActionState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signup, type AuthState } from '@/app/(auth)/actions/auth'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
@@ -11,8 +13,78 @@ import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 const initialState: AuthState = { error: null }
 
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupContent />
+    </Suspense>
+  )
+}
+
+function SignupContent() {
   const [state, formAction, pending] = useActionState(signup, initialState)
   const [showPassword, setShowPassword] = useState(false)
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan')
+
+  // Success — show "Check your inbox" screen
+  if (state.success) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-md animate-fade-in-up">
+          {/* Logo */}
+          <div className="mb-8 flex items-center justify-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
+              <div className="h-1.5 w-1.5 rounded-full bg-white" />
+            </div>
+            <span
+              className="text-[0.95rem] font-bold text-[#fafafa]"
+              style={{ letterSpacing: '-0.02em' }}
+            >
+              SubHuntr
+            </span>
+          </div>
+
+          {/* Card */}
+          <div
+            className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 text-center"
+            style={{
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 50px rgba(0,0,0,0.5), 0 0 80px rgba(29,158,117,0.05)',
+            }}
+          >
+            {/* Email icon */}
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(29,158,117,0.1)]">
+              <Mail className="h-8 w-8 text-[#1D9E75]" />
+            </div>
+
+            <h1
+              className="mb-3 text-[clamp(1.7rem,3.5vw,2rem)] font-[800] text-[#fafafa]"
+              style={{ letterSpacing: '-0.035em', lineHeight: '1.15' }}
+            >
+              Check your inbox
+            </h1>
+
+            <p className="mb-2 text-[0.88rem] text-[#a1a1aa]">
+              We sent a confirmation link to{' '}
+              <strong className="text-[#fafafa]">{state.email}</strong>.
+              Click the link to activate your account.
+            </p>
+
+            <p className="mb-8 text-[0.78rem] text-[#52525b]">
+              Didn&apos;t receive it? Check your spam folder or try again.
+            </p>
+
+            <Link
+              href="/login"
+              className="inline-flex h-[46px] items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] px-8 text-[0.88rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+              style={{ transition: 'all 0.2s' }}
+            >
+              Back to login
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -53,6 +125,9 @@ export default function SignupPage() {
                 {state.error}
               </div>
             )}
+
+            {/* Pass plan as hidden field */}
+            {plan && <input type="hidden" name="plan" value={plan} />}
 
             {/* Full Name */}
             <div className="flex flex-col gap-2">

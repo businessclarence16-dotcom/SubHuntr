@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/server'
 
 export interface AuthState {
   error: string | null
+  success?: boolean
+  email?: string
 }
 
 export async function signup(
@@ -19,6 +21,7 @@ export async function signup(
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const fullName = formData.get('full_name') as string
+  const plan = formData.get('plan') as string | null
 
   if (!email || !password) {
     return { error: 'Email et mot de passe requis.' }
@@ -28,6 +31,12 @@ export async function signup(
     return { error: 'Le mot de passe doit contenir au moins 6 caractères.' }
   }
 
+  // Build redirect URL — pass selected plan to onboarding
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://subhuntr.com'
+  const redirectTo = plan
+    ? `${baseUrl}/onboarding?plan=${plan}`
+    : `${baseUrl}/onboarding`
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -35,6 +44,7 @@ export async function signup(
       data: {
         full_name: fullName || null,
       },
+      emailRedirectTo: redirectTo,
     },
   })
 
@@ -42,7 +52,7 @@ export async function signup(
     return { error: error.message }
   }
 
-  redirect('/onboarding')
+  return { error: null, success: true, email }
 }
 
 export async function login(

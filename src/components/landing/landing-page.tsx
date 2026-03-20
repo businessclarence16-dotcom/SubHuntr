@@ -392,7 +392,7 @@ export function LandingPage() {
               <div className="ps">Solo founders testing the waters</div>
               <div className="pp"><span className="c">$</span><span className="pv">{prices[0]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[0]}/year</div>
-              <Link href="/signup" className="pc">Start 7-day free trial</Link>
+              <Link href="/signup?plan=starter" className="pc">Start 7-day free trial</Link>
               <ul className="pl">
                 <li>5 keywords</li>
                 <li>15 subreddits</li>
@@ -411,7 +411,7 @@ export function LandingPage() {
               <div className="ps">Teams serious about Reddit leads</div>
               <div className="pp"><span className="c">$</span><span className="pv">{prices[1]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[1]}/year</div>
-              <Link href="/signup" className="pc">Subscribe — ${prices[1]}/mo</Link>
+              <Link href="/signup?plan=growth" className="pc">Subscribe — ${prices[1]}/mo</Link>
               <ul className="pl">
                 <li>25 keywords</li>
                 <li>75 subreddits</li>
@@ -429,7 +429,7 @@ export function LandingPage() {
               <div className="ps">Agencies managing multiple clients</div>
               <div className="pp"><span className="c">$</span><span className="pv">{prices[2]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[2]}/year</div>
-              <Link href="/signup" className="pc">Subscribe — ${prices[2]}/mo</Link>
+              <Link href="/signup?plan=agency" className="pc">Subscribe — ${prices[2]}/mo</Link>
               <ul className="pl">
                 <li>Unlimited keywords</li>
                 <li>Unlimited subreddits</li>

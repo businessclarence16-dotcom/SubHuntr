@@ -3,8 +3,8 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createProject, addKeywords, addSubreddits } from '@/app/(auth)/actions/onboarding'
 import {
   X,
@@ -62,8 +62,32 @@ const chipActive =
   'border-[#1D9E75] bg-[rgba(29,158,117,0.15)] text-[#1D9E75]'
 
 export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingContent />
+    </Suspense>
+  )
+}
+
+function OnboardingContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [step, setStep] = useState(1)
+
+  // Read plan from URL or cookie on mount
+  useEffect(() => {
+    const planFromUrl = searchParams.get('plan')
+    if (planFromUrl) {
+      setSelectedPlan(planFromUrl)
+      return
+    }
+    // Check cookie
+    const match = document.cookie.match(/(?:^|; )selected_plan=([^;]*)/)
+    if (match) {
+      setSelectedPlan(match[1])
+    }
+  }, [searchParams])
   const [animDir, setAnimDir] = useState<'right' | 'left'>('right')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -184,6 +208,24 @@ export default function OnboardingPage() {
       setError(result.error)
       return
     }
+
+    // Clear the plan cookie
+    document.cookie = 'selected_plan=; path=/; max-age=0'
+
+    // If a paid plan was pre-selected, redirect to Stripe checkout
+    if (selectedPlan && selectedPlan !== 'starter') {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: selectedPlan, billing: 'monthly' }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+    }
+
     router.push('/feed')
   }
 
