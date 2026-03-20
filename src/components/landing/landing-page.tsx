@@ -34,7 +34,6 @@ export function LandingPage() {
   const [annual, setAnnual] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [spVisible, setSpVisible] = useState(false)
-  const [spCount, setSpCount] = useState(47)
   const [spDismissed, setSpDismissed] = useState(false)
 
   // Demo feed state
@@ -64,10 +63,7 @@ export function LandingPage() {
   // Social proof banner
   useEffect(() => {
     const timer = setTimeout(() => setSpVisible(true), 4000)
-    const interval = setInterval(() => {
-      setSpCount((c) => c + Math.floor(Math.random() * 2))
-    }, 8000)
-    return () => { clearTimeout(timer); clearInterval(interval) }
+    return () => { clearTimeout(timer) }
   }, [])
 
   // Demo feed — init + interval
@@ -181,7 +177,7 @@ export function LandingPage() {
           </div>
           <div className="hero-meta">Credit card required · Cancel anytime · 3-min setup</div>
           <div className="trust-b">
-            <span className="tb"><CheckIcon /> Reddit Official API</span>
+            <span className="tb"><CheckIcon /> Real-time Reddit data</span>
             <span className="tb"><CheckIcon /> No fake votes or bots</span>
             <span className="tb"><CheckIcon /> Setup in 3 minutes</span>
             <span className="tb"><CheckIcon /> 52+ templates</span>
@@ -507,7 +503,7 @@ export function LandingPage() {
       {!spDismissed && (
         <div className={`sp-banner${spVisible ? ' show' : ''}`}>
           <span className="sp-dot"></span>
-          <span><span className="sp-num">{spCount}</span> founders signed up this week</span>
+          <span>Monitoring <span className="sp-num">2.5M+</span> Reddit posts monthly</span>
           <button className="sp-close" onClick={() => setSpDismissed(true)} aria-label="Close">×</button>
         </div>
       )}
@@ -520,9 +516,9 @@ export function LandingPage() {
               <div className="logo-mark" style={{ width: '20px', height: '20px' }}></div> SubHuntr
             </Link>
             <ul className="fl">
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><Link href="/privacy">Privacy</Link></li>
+              <li><Link href="/terms">Terms</Link></li>
+              <li><Link href="/contact">Contact</Link></li>
             </ul>
           </div>
           <div className="fc">© 2026 SubHuntr</div>

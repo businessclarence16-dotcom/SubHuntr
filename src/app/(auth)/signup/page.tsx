@@ -146,7 +146,7 @@ export default function SignupPage() {
 
             {/* Trial note */}
             <p className="text-center text-[0.75rem] text-[#52525b]">
-              7-day free trial · No credit card required · Cancel anytime
+              7-day free trial · Credit card required · Cancel anytime
             </p>
 
             <p className="text-center text-[0.82rem] text-[#a1a1aa]">
