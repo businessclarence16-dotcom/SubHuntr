@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { ReplyDialog } from '@/components/feed/reply-dialog'
 import { UpgradeNudge } from '@/components/shared/upgrade-nudge'
+import { trackEvent } from '@/lib/posthog'
 
 interface Post {
   id: string
@@ -119,6 +120,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   async function handleScan() {
     setScanning(true)
     setScanResult(null)
+    trackEvent('scan_triggered', { projectId })
 
     try {
       const res = await fetch('/api/reddit/scan', {

@@ -3,12 +3,13 @@
 
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signup, type AuthState } from '@/app/(auth)/actions/auth'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { trackEvent } from '@/lib/posthog'
 
 const initialState: AuthState = { error: null }
 
@@ -25,6 +26,20 @@ function SignupContent() {
   const [showPassword, setShowPassword] = useState(false)
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan')
+  const trackedRef = useRef(false)
+
+  // Track signup_started on mount
+  useEffect(() => {
+    trackEvent('signup_started', { plan: plan ?? 'none' })
+  }, [plan])
+
+  // Track signup_completed on success
+  useEffect(() => {
+    if (state.success && !trackedRef.current) {
+      trackedRef.current = true
+      trackEvent('signup_completed', { email: state.email, plan: plan ?? 'none' })
+    }
+  }, [state.success, state.email, plan])
 
   // Success — show "Check your inbox" screen
   if (state.success) {

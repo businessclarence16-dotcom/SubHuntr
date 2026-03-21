@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Check, Loader2, CreditCard, FileText, X as XIcon, CheckCircle, AlertTriangle } from 'lucide-react'
+import { trackEvent } from '@/lib/posthog'
 import { Plan } from '@/types'
 
 interface SubscriptionInfo {
@@ -119,6 +120,7 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
       setShowSuccess(true)
+      trackEvent('plan_upgraded', { plan })
       const timer = setTimeout(() => setShowSuccess(false), 8000)
       return () => clearTimeout(timer)
     }

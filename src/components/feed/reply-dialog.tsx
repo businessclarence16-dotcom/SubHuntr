@@ -5,6 +5,7 @@
 
 import { useState } from 'react'
 import { Loader2, Copy, Check, ArrowUpRight } from 'lucide-react'
+import { trackEvent } from '@/lib/posthog'
 
 interface ReplyDialogProps {
   open: boolean
@@ -44,6 +45,7 @@ export function ReplyDialog({ open, onOpenChange, post, onReplySent }: ReplyDial
         return
       }
 
+      trackEvent('post_replied', { postId: post.id, subreddit: post.subreddit })
       onReplySent()
       onOpenChange(false)
       setContent(getDefaultTemplate(post))

@@ -3,6 +3,7 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import { PostHogProvider } from '@/components/providers/posthog-provider'
 import './globals.css'
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -49,7 +50,9 @@ export default function RootLayout({
       <body
         className={`${jakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        {children}
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
         <Toaster />
       </body>
     </html>

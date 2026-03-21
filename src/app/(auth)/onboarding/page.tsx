@@ -6,6 +6,7 @@
 import { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createProject, addKeywords, addSubreddits } from '@/app/(auth)/actions/onboarding'
+import { trackEvent } from '@/lib/posthog'
 import {
   X,
   Plus,
@@ -188,6 +189,7 @@ function OnboardingContent() {
     }
     if (result.projectId) {
       setProjectId(result.projectId)
+      trackEvent('onboarding_step_completed', { step: 1 })
       goForward(2)
     }
   }
@@ -228,6 +230,7 @@ function OnboardingContent() {
       setError(result.error)
       return
     }
+    trackEvent('onboarding_step_completed', { step: 2, keywords_count: keywords.length })
     goForward(3)
   }
 
@@ -260,6 +263,7 @@ function OnboardingContent() {
     }
 
     // Go to step 4 (scan) instead of redirecting
+    trackEvent('onboarding_step_completed', { step: 3, subreddits_count: subredditsList.length })
     goForward(4)
   }
 
@@ -331,9 +335,11 @@ function OnboardingContent() {
           }
         }
 
+        trackEvent('onboarding_step_completed', { step: 4, posts_found: data.postsFound ?? 0 })
         setScanComplete(true)
       } catch {
         setScanError(true)
+        trackEvent('onboarding_step_completed', { step: 4, posts_found: 0, error: true })
         setScanComplete(true)
         setScanSteps((prev) =>
           prev.map((s) =>

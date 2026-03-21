@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { LogoutButton } from '@/components/layout/logout-button'
+import { PostHogIdentify } from '@/components/providers/posthog-identify'
 import Link from 'next/link'
 
 export async function Header() {
@@ -41,6 +42,7 @@ export async function Header() {
 
   return (
     <header className="flex h-14 items-center justify-end px-6">
+      {user && <PostHogIdentify userId={user.id} email={email} plan={plan} />}
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.04)]">
           <Avatar className="h-8 w-8 border border-[rgba(255,255,255,0.06)]">
