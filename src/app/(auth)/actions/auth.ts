@@ -60,10 +60,10 @@ export async function signup(
     password,
   })
 
-  // Send welcome email in background (don't block signup flow)
+  // Send welcome email in background (simplified — no project info yet)
   const { data: { user: newUser } } = await supabase.auth.getUser()
   if (newUser) {
-    const welcome = welcomeEmail(fullName || '')
+    const welcome = welcomeEmail({ name: fullName || '' })
     sendEmail(newUser.id, 'onboarding_welcome', email, welcome.subject, welcome.html).catch(() => {})
   }
 
