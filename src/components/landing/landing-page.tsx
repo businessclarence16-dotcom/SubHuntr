@@ -333,7 +333,7 @@ export function LandingPage() {
             <div className="ft"><div className="ft-ico">🧠</div><h3>AI intent scoring</h3><p>Every post scored 1–10. Filter for 7+ to find ready buyers.</p><span className="ft-tag">Core</span></div>
             <div className="ft"><div className="ft-ico">📝</div><h3>52+ reply templates</h3><p>Alternative, Reco, Story, Advice. Auto-fills your product info.</p><span className="ft-tag">Core</span></div>
             <div className="ft"><div className="ft-ico">🔔</div><h3>Alerts everywhere</h3><p>Email, Slack, Discord, webhooks. Score thresholds per channel.</p><span className="ft-tag">Growth+</span></div>
-            <div className="ft w"><div className="ft-ico">📊</div><h3>Analytics + competitor intel</h3><p>UTM tracking. Reddit CPC vs ads. Competitor sentiment — strike when users complain.</p><span className="ft-tag">Growth+</span></div>
+            <div className="ft"><div className="ft-ico">📊</div><h3>Analytics + competitor intel</h3><p>UTM tracking. Reddit CPC vs ads. Competitor sentiment — strike when users complain.</p><span className="ft-tag">Growth+</span></div>
           </div>
         </div>
       </section>
