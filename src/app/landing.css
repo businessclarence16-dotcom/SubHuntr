@@ -29,6 +29,15 @@
 .landing .nav-links a:hover{color:var(--t);background:rgba(255,255,255,0.04)}
 .landing .nav-r{display:flex;align-items:center;gap:10px}
 .landing .mob-tog{display:none;background:none;border:none;color:var(--t);cursor:pointer;padding:4px;z-index:110}
+.landing .mob-overlay{display:none}
+.landing .mob-overlay.open{display:flex;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);padding:80px 24px 32px;gap:0;z-index:98;animation:landingMenuIn .3s var(--e)}
+.landing .mob-overlay .mob-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--t);cursor:pointer;padding:8px;font-size:1.5rem;z-index:99}
+.landing .mob-overlay .mob-link{display:block;font-size:1.1rem;font-weight:600;color:var(--t);padding:16px 0;border-bottom:1px solid var(--brd);transition:color .15s}
+.landing .mob-overlay .mob-link:hover{color:var(--a)}
+.landing .mob-overlay .mob-login{display:block;font-size:1rem;font-weight:500;color:var(--t2);padding:16px 0;text-align:center;margin-top:16px;transition:color .15s}
+.landing .mob-overlay .mob-login:hover{color:var(--t)}
+.landing .mob-overlay .mob-cta{display:block;margin-top:16px;padding:14px 0;background:var(--a);color:#fff;font-size:.95rem;font-weight:700;text-align:center;border-radius:10px;border:none;cursor:pointer;transition:background .2s}
+.landing .mob-overlay .mob-cta:hover{background:var(--a2)}
 .landing .nav-links.open{display:flex!important;flex-direction:column;position:fixed;top:56px;left:0;right:0;bottom:0;background:var(--bg);padding:32px 24px;gap:8px;z-index:99;animation:landingMenuIn .3s var(--e)}
 .landing .nav-links.open a{font-size:1.1rem;padding:14px 0;border-bottom:1px solid var(--brd)}
 @keyframes landingMenuIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
@@ -257,8 +266,8 @@
 .landing .faq-i:hover .faq-q{color:var(--a)}
 .landing .faq-ch{transition:transform .3s var(--e);color:var(--t3);flex-shrink:0}
 .landing .faq-i.open .faq-ch{transform:rotate(180deg)}
-.landing .faq-a{max-height:0;overflow:hidden;transition:max-height .4s var(--e),padding .4s var(--e);color:var(--t2);font-size:.85rem;line-height:1.7}
-.landing .faq-i.open .faq-a{max-height:200px;padding-bottom:16px}
+.landing .faq-a{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s var(--e),padding .4s var(--e),opacity .3s var(--e);color:var(--t2);font-size:.85rem;line-height:1.7}
+.landing .faq-i.open .faq-a{max-height:300px;padding-bottom:16px;opacity:1}
 
 /* ── FINAL CTA ── */
 .landing .final{padding:110px 0;text-align:center;position:relative;overflow:hidden}
@@ -302,6 +311,7 @@
   .landing .demo-post-btn{display:none}
   .landing .demo-tip{display:none}
   .landing nav .nav-links{display:none}
+  .landing .nav-r{display:none}
   .landing .mob-tog{display:flex;align-items:center;justify-content:center}
   .landing footer .ctn{flex-direction:column;gap:10px}
   .landing .ba-grid{grid-template-columns:1fr;gap:16px}

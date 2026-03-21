@@ -137,7 +137,7 @@ export function LandingPage() {
           <Link href="/" className="logo">
             <div className="logo-mark"></div> SubHuntr
           </Link>
-          <ul className={`nav-links${menuOpen ? ' open' : ''}`}>
+          <ul className="nav-links">
             <li><a href="#how" onClick={(e) => handleSmoothScroll(e, 'how')}>How it works</a></li>
             <li><a href="#features" onClick={(e) => handleSmoothScroll(e, 'features')}>Features</a></li>
             <li><a href="#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')}>Pricing</a></li>
@@ -152,14 +152,21 @@ export function LandingPage() {
             aria-label="Menu"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? (
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 5l10 10M15 5L5 15" /></svg>
-            ) : (
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h14M3 10h14M3 14h14" /></svg>
-            )}
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h14M3 10h14M3 14h14" /></svg>
           </button>
         </div>
       </nav>
+
+      {/* Mobile menu overlay */}
+      <div className={`mob-overlay${menuOpen ? ' open' : ''}`}>
+        <button className="mob-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
+        <a href="#how" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'how')}>How it works</a>
+        <a href="#features" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'features')}>Features</a>
+        <a href="#pricing" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'pricing')}>Pricing</a>
+        <a href="#faq" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'faq')}>FAQ</a>
+        <Link href="/login" className="mob-login" onClick={() => setMenuOpen(false)}>Log in</Link>
+        <Link href="/signup" className="mob-cta" onClick={() => setMenuOpen(false)}>Start free trial</Link>
+      </div>
 
       {/* HERO */}
       <section className="hero">
