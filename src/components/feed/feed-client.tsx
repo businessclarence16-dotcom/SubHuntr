@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -92,6 +92,21 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   const [updatingPost, setUpdatingPost] = useState<string | null>(null)
   const [replyPost, setReplyPost] = useState<Post | null>(null)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+
+  // Welcome banner for first-time users
+  useEffect(() => {
+    const completed = localStorage.getItem('subhuntr_onboarding_completed')
+    const dismissed = localStorage.getItem('subhuntr_welcome_dismissed')
+    if (completed && !dismissed) {
+      setShowWelcome(true)
+    }
+  }, [])
+
+  function dismissWelcome() {
+    setShowWelcome(false)
+    localStorage.setItem('subhuntr_welcome_dismissed', 'true')
+  }
 
   // KPI counts
   const todayStart = new Date()
@@ -188,6 +203,27 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
 
   return (
     <div className="space-y-6">
+      {/* Welcome banner for first-time users */}
+      {showWelcome && (
+        <div className="animate-fade-in-up flex items-start justify-between rounded-[12px] border border-[rgba(29,158,117,0.2)] bg-[rgba(29,158,117,0.08)] px-5 py-4">
+          <div className="flex-1">
+            <p className="text-[0.88rem] font-semibold text-[#fafafa]">
+              {'\uD83C\uDF89'} Welcome to your Lead Feed!
+            </p>
+            <p className="mt-1 text-[0.82rem] text-[#a1a1aa]">
+              Posts are scored 1-10 by buying intent. Click Reply to use a template, then post on Reddit.
+            </p>
+          </div>
+          <button
+            onClick={dismissWelcome}
+            className="ml-4 shrink-0 rounded-[8px] border border-[rgba(255,255,255,0.06)] px-3 py-1.5 text-[0.78rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+            style={{ transition: 'all 0.2s' }}
+          >
+            Got it
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>

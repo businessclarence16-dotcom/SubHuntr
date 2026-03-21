@@ -170,3 +170,13 @@
 .animate-chip-pop {
   animation: chipPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@keyframes radarPulse {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  70% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+.animate-radar-pulse {
+  animation: radarPulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
