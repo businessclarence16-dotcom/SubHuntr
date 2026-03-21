@@ -43,7 +43,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup')
   const isApiWebhook =
-    request.nextUrl.pathname === '/api/stripe/webhook'
+    request.nextUrl.pathname === '/api/stripe/webhook' ||
+    request.nextUrl.pathname === '/api/cron/emails'
   const isLegalPage =
     request.nextUrl.pathname === '/privacy' ||
     request.nextUrl.pathname === '/terms' ||

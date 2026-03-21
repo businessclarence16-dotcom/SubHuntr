@@ -5,6 +5,8 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email/send'
+import { welcomeEmail } from '@/lib/email/templates'
 
 export interface AuthState {
   error: string | null
@@ -57,6 +59,13 @@ export async function signup(
     email,
     password,
   })
+
+  // Send welcome email in background (don't block signup flow)
+  const { data: { user: newUser } } = await supabase.auth.getUser()
+  if (newUser) {
+    const welcome = welcomeEmail(fullName || '')
+    sendEmail(newUser.id, 'onboarding_welcome', email, welcome.subject, welcome.html).catch(() => {})
+  }
 
   if (!signInError) {
     // Auto-login succeeded — redirect to onboarding
