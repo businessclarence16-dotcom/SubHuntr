@@ -15,8 +15,6 @@ import {
   Loader2,
   Rocket,
   Globe,
-  FileText,
-  Sparkles,
   Check,
   Lightbulb,
 } from 'lucide-react'
@@ -61,6 +59,12 @@ const SUBREDDIT_MEMBERS: Record<string, string> = {
   digitalnomad: '900k',
   freelance: '1.1M',
 }
+
+const MOCK_PREVIEW_POSTS: TopPost[] = [
+  { id: 'mock-1', title: 'Best CRM for a small B2B SaaS? Salesforce is overkill', subreddit: 'SaaS', relevance_score: 9, url: '#' },
+  { id: 'mock-2', title: 'Looking for a Mailchimp alternative that doesn\'t cost $300/mo', subreddit: 'Entrepreneur', relevance_score: 8, url: '#' },
+  { id: 'mock-3', title: 'Any good Intercom alternatives for a bootstrapped startup?', subreddit: 'startups', relevance_score: 7, url: '#' },
+]
 
 const stepLabels = ['Your product', 'Keywords', 'Subreddits', 'First scan']
 
@@ -135,12 +139,8 @@ function OnboardingContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Step 1 — Project
-  const [projectName, setProjectName] = useState('')
+  // Step 1 — Project (simplified: just URL, name auto-detected)
   const [projectUrl, setProjectUrl] = useState('')
-  const [projectDescription, setProjectDescription] = useState('')
-  const [competitors, setCompetitors] = useState<string[]>([])
-  const [competitorInput, setCompetitorInput] = useState('')
   const [projectId, setProjectId] = useState('')
 
   // Step 2 — Keywords (pre-select defaults)
@@ -171,14 +171,19 @@ function OnboardingContent() {
     setStep(prevStep)
   }, [])
 
-  // ---- Step 1: Create project ----
+  // ---- Step 1: Create project (auto-detect name from URL) ----
   async function handleCreateProject() {
     setLoading(true)
     setError('')
+    const domain = extractDomain(projectUrl)
+    const autoName = domain
+      ? domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1)
+      : 'My Project'
+
     const formData = new FormData()
-    formData.set('name', projectName)
+    formData.set('name', autoName)
     formData.set('url', projectUrl)
-    formData.set('description', projectDescription)
+    formData.set('description', '')
 
     const result = await createProject(formData)
     setLoading(false)
@@ -194,13 +199,43 @@ function OnboardingContent() {
     }
   }
 
-  // ---- Competitors ----
-  function handleAddCompetitor() {
-    const comp = competitorInput.trim()
-    if (comp && !competitors.includes(comp)) {
-      setCompetitors([...competitors, comp])
-      setCompetitorInput('')
+  // ---- Skip setup — create defaults and go to feed ----
+  async function handleSkip() {
+    setLoading(true)
+    setError('')
+
+    // Step 1: Create project with defaults if not done yet
+    let pid = projectId
+    if (!pid) {
+      const domain = extractDomain(projectUrl)
+      const autoName = domain
+        ? domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1)
+        : 'My Project'
+      const formData = new FormData()
+      formData.set('name', autoName)
+      formData.set('url', projectUrl || '')
+      formData.set('description', '')
+      const result = await createProject(formData)
+      if (result.error || !result.projectId) {
+        setError(result.error || 'Failed to create project')
+        setLoading(false)
+        return
+      }
+      pid = result.projectId
     }
+
+    // Step 2: Add default keywords
+    await addKeywords(pid, [...DEFAULT_KEYWORDS])
+
+    // Step 3: Add default subreddits
+    await addSubreddits(pid, [...DEFAULT_SUBREDDITS])
+
+    setLoading(false)
+
+    // Mark onboarding completed and go to feed
+    localStorage.setItem('subhuntr_onboarding_completed', 'true')
+    document.cookie = 'selected_plan=; path=/; max-age=0'
+    router.push('/feed')
   }
 
   // ---- Step 2: Keywords ----
@@ -471,7 +506,7 @@ function OnboardingContent() {
                 </div>
               )}
 
-              {/* ====== STEP 1 — Your product ====== */}
+              {/* ====== STEP 1 — Your product (simplified: just URL) ====== */}
               {step === 1 && (
                 <div className="space-y-6">
                   <div>
@@ -479,10 +514,10 @@ function OnboardingContent() {
                       className="text-[clamp(1.3rem,3vw,1.5rem)] font-[800] text-[#fafafa]"
                       style={{ letterSpacing: '-0.035em', lineHeight: '1.15' }}
                     >
-                      Tell us about your product
+                      What&apos;s your product URL?
                     </h2>
                     <p className="mt-2 text-[0.88rem] text-[#a1a1aa]" style={{ lineHeight: '1.7' }}>
-                      We&apos;ll use this to find the most relevant Reddit conversations.
+                      We&apos;ll auto-detect your product and find relevant Reddit conversations.
                     </p>
                   </div>
 
@@ -499,115 +534,38 @@ function OnboardingContent() {
                         placeholder="https://yourproduct.com"
                         value={projectUrl}
                         onChange={(e) => setProjectUrl(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleCreateProject()
+                          }
+                        }}
                         className={`${inputClass} !pl-10`}
                         style={inputTransition}
                       />
                     </div>
                     {detectedDomain && (
                       <p className="flex items-center gap-1.5 text-[0.78rem] text-[#1D9E75]">
-                        <Check className="h-3 w-3" /> Product detected — {detectedDomain}
+                        <Check className="h-3 w-3" /> Got it — {detectedDomain}
                       </p>
                     )}
                   </div>
 
-                  {/* Product name */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="name" className="text-[0.82rem] font-semibold text-[#fafafa]">
-                      Product name <span className="text-[#1D9E75]">*</span>
-                    </label>
-                    <div className="relative">
-                      <Sparkles className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52525b]" />
-                      <input
-                        id="name"
-                        type="text"
-                        placeholder="My awesome SaaS"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                        className={`${inputClass} !pl-10`}
-                        style={inputTransition}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="description" className="text-[0.82rem] font-semibold text-[#fafafa]">
-                      Description
-                    </label>
-                    <div className="relative">
-                      <FileText className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#52525b]" />
-                      <textarea
-                        id="description"
-                        placeholder="Describe your product in a few words..."
-                        value={projectDescription}
-                        onChange={(e) => setProjectDescription(e.target.value)}
-                        rows={3}
-                        className="w-full resize-none rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#09090b] pl-10 pr-4 pt-2.5 text-[0.88rem] text-[#fafafa] placeholder:text-[#52525b] focus:border-[#1D9E75] focus:outline-none"
-                        style={inputTransition}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Competitors */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[0.82rem] font-semibold text-[#fafafa]">
-                      Competitors <span className="text-[0.75rem] font-normal text-[#52525b]">(optional)</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="e.g. Competitor.com"
-                        value={competitorInput}
-                        onChange={(e) => setCompetitorInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleAddCompetitor()
-                          }
-                        }}
-                        className={inputClass}
-                        style={inputTransition}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddCompetitor}
-                        disabled={!competitorInput.trim()}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#09090b] text-[#a1a1aa] hover:border-[#1D9E75] hover:text-[#1D9E75] disabled:opacity-30"
-                        style={{ transition: 'all 0.2s' }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {competitors.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {competitors.map((comp) => (
-                          <span
-                            key={comp}
-                            className={`animate-chip-pop ${chipBase} ${chipActive}`}
-                            style={{ borderRadius: '100px', transition: 'all 0.2s' }}
-                          >
-                            {comp}
-                            <button
-                              type="button"
-                              onClick={() => setCompetitors(competitors.filter((c) => c !== comp))}
-                              className="text-[#1D9E75]/60 hover:text-[#1D9E75]"
-                              style={{ transition: 'color 0.15s' }}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Continue button — matches .btn-p */}
-                  <div className="flex justify-end pt-2">
+                  {/* Continue + Skip */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={handleSkip}
+                      disabled={loading}
+                      className="text-[0.78rem] text-[#52525b] hover:text-[#a1a1aa]"
+                      style={{ transition: 'color 0.15s' }}
+                    >
+                      Skip setup
+                    </button>
                     <button
                       type="button"
                       onClick={handleCreateProject}
-                      disabled={!projectName.trim() || loading}
+                      disabled={loading}
                       className="inline-flex h-[46px] items-center gap-2 rounded-[10px] bg-[#1D9E75] px-7 text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{
                         boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
@@ -755,22 +713,23 @@ function OnboardingContent() {
                   </div>
 
                   {/* Navigation */}
-                  <div className="flex items-center justify-between pt-2">
-                    {/* Back — matches .btn-g */}
-                    <button
-                      type="button"
-                      onClick={() => goBack(1)}
-                      className="inline-flex h-[42px] items-center gap-2 rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-transparent px-5 text-[0.88rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.02)] hover:text-[#fafafa]"
-                      style={{ transition: 'all 0.2s' }}
-                    >
-                      <ArrowLeft className="h-4 w-4" /> Back
-                    </button>
-                    {/* Continue — matches .btn-p */}
-                    <button
-                      type="button"
-                      onClick={handleSaveKeywords}
-                      disabled={keywords.length === 0 || loading}
-                      className="inline-flex h-[46px] items-center gap-2 rounded-[10px] bg-[#1D9E75] px-7 text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      {/* Back — matches .btn-g */}
+                      <button
+                        type="button"
+                        onClick={() => goBack(1)}
+                        className="inline-flex h-[42px] items-center gap-2 rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-transparent px-5 text-[0.88rem] font-medium text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.02)] hover:text-[#fafafa]"
+                        style={{ transition: 'all 0.2s' }}
+                      >
+                        <ArrowLeft className="h-4 w-4" /> Back
+                      </button>
+                      {/* Continue — matches .btn-p */}
+                      <button
+                        type="button"
+                        onClick={handleSaveKeywords}
+                        disabled={keywords.length === 0 || loading}
+                        className="inline-flex h-[46px] items-center gap-2 rounded-[10px] bg-[#1D9E75] px-7 text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{
                         boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
                         transition: 'all 0.2s',
@@ -794,6 +753,18 @@ function OnboardingContent() {
                         <>Continue <ArrowRight className="h-4 w-4" /></>
                       )}
                     </button>
+                    </div>
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={handleSkip}
+                        disabled={loading}
+                        className="text-[0.75rem] text-[#52525b] hover:text-[#a1a1aa]"
+                        style={{ transition: 'color 0.15s' }}
+                      >
+                        Skip setup → Go to dashboard
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -957,6 +928,17 @@ function OnboardingContent() {
                       )}
                     </button>
                   </div>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={handleSkip}
+                      disabled={loading}
+                      className="text-[0.75rem] text-[#52525b] hover:text-[#a1a1aa]"
+                      style={{ transition: 'color 0.15s' }}
+                    >
+                      Skip setup → Go to dashboard
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -988,14 +970,14 @@ function OnboardingContent() {
               {scanComplete
                 ? scanPostsFound > 0
                   ? `\uD83C\uDF89 Your first scan found ${scanPostsFound} lead${scanPostsFound !== 1 ? 's' : ''}!`
-                  : 'No leads found yet'
+                  : 'Here\u2019s what leads look like in SubHuntr'
                 : 'Scanning Reddit for your first leads...'}
             </h2>
             <p className="mb-8 text-[0.88rem] text-[#a1a1aa]">
               {scanComplete
                 ? scanPostsFound > 0
                   ? 'Here are your top matches. Head to your feed to see all results.'
-                  : 'SubHuntr will keep scanning every 15 minutes. We\'ll alert you when new leads appear.'
+                  : 'These are examples. SubHuntr scans every 15 minutes \u2014 real leads will appear soon.'
                 : 'This usually takes 15-30 seconds'}
             </p>
 
@@ -1029,13 +1011,13 @@ function OnboardingContent() {
               ))}
             </div>
 
-            {/* Top posts preview */}
-            {scanComplete && topPosts.length > 0 && (
+            {/* Top posts preview (real or mock examples) */}
+            {scanComplete && (topPosts.length > 0 || scanPostsFound === 0) && (
               <div className="mx-auto mb-8 max-w-[400px] space-y-2">
                 <p className="mb-3 text-left text-[0.72rem] font-semibold uppercase text-[#52525b]" style={{ letterSpacing: '0.1em' }}>
-                  Top matches
+                  {scanPostsFound > 0 ? 'Top matches' : 'Example leads'}
                 </p>
-                {topPosts.map((post) => {
+                {(topPosts.length > 0 ? topPosts : MOCK_PREVIEW_POSTS).map((post) => {
                   const score = post.relevance_score ?? 0
                   return (
                     <div

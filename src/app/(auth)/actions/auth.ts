@@ -37,7 +37,7 @@ export async function signup(
     ? `${baseUrl}/onboarding?plan=${plan}`
     : `${baseUrl}/onboarding`
 
-  const { error } = await supabase.auth.signUp({
+  const { error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -48,10 +48,22 @@ export async function signup(
     },
   })
 
-  if (error) {
-    return { error: error.message }
+  if (signUpError) {
+    return { error: signUpError.message }
   }
 
+  // Try auto-login immediately (works when email confirmation is disabled)
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (!signInError) {
+    // Auto-login succeeded — redirect to onboarding
+    redirect(plan ? `/onboarding?plan=${plan}` : '/onboarding')
+  }
+
+  // Auto-login failed (email confirmation is enabled) — show "check your inbox"
   return { error: null, success: true, email }
 }
 
