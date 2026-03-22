@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/billing?success=true`,
-    cancel_url: `${origin}/billing?canceled=true`,
+    success_url: `${origin}/feed?success=true`,
+    cancel_url: `${origin}/activate`,
     metadata: { userId: user.id, plan, billing },
     subscription_data: {
       // Free trial only on Starter plan — Growth/Agency pay immediately

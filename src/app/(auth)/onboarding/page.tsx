@@ -396,28 +396,9 @@ function OnboardingContent() {
     // Clear the plan cookie
     document.cookie = 'selected_plan=; path=/; max-age=0'
 
-    // If a paid plan was pre-selected, redirect to Stripe checkout
-    if (selectedPlan && selectedPlan !== 'starter') {
-      fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: selectedPlan, billing: 'monthly' }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.url) {
-            window.location.href = data.url
-          } else {
-            router.push('/feed')
-          }
-        })
-        .catch(() => {
-          router.push('/feed')
-        })
-      return
-    }
-
-    router.push('/feed')
+    // Redirect to /activate with plan param — card required before dashboard
+    const planParam = selectedPlan ? `?plan=${selectedPlan}` : '?plan=starter'
+    router.push(`/activate${planParam}`)
   }
 
   // URL detection for product feedback
