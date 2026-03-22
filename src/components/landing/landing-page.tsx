@@ -480,7 +480,7 @@ export function LandingPage() {
               { q: 'What\'s included in the free trial?', a: 'Full access for 7 days. Credit card required. Cancel before the trial ends — you won\'t be charged.' },
               { q: 'How is this different from Launch Club?', a: 'Launch Club ($199-499/mo) uses fake accounts and vote manipulation. SubHuntr is self-service, ethical, and starts at $29/mo.' },
             ].map((faq, i) => (
-              <div key={i} className={`faq-i rv${openFaq === i ? ' open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+              <div key={i} className={`faq-i${openFaq === i ? ' open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                 <div className="faq-q">
                   <span>{faq.q}</span>
                   <svg className="faq-ch" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6l4 4 4-4" /></svg>
