@@ -41,43 +41,54 @@ export async function POST(request: NextRequest) {
 
   console.log(`[Checkout] User ${user.id} requesting ${plan} (${billing})`)
 
-  const stripe = getStripe()
-  let customerId = profile?.stripe_customer_id
+  try {
+    const stripe = getStripe()
+    let customerId = profile?.stripe_customer_id
 
-  if (!customerId) {
-    console.log(`[Checkout] Creating Stripe customer for user ${user.id}`)
-    const customer = await stripe.customers.create({
-      email: profile?.email ?? user.email ?? '',
-      metadata: { userId: user.id },
+    if (!customerId) {
+      console.log(`[Checkout] Creating Stripe customer for user ${user.id}`)
+      const customer = await stripe.customers.create({
+        email: profile?.email ?? user.email ?? '',
+        metadata: { userId: user.id },
+      })
+      customerId = customer.id
+
+      await supabase
+        .from('users')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id)
+
+      console.log(`[Checkout] Stripe customer ${customerId} created and saved`)
+    }
+
+    const origin = request.nextUrl.origin
+    const priceId = getPriceId(plan, billing)
+    console.log(`[Checkout] Using price ID: ${priceId}`)
+
+    if (!priceId) {
+      console.error(`[Checkout] No price ID found for plan=${plan} billing=${billing}`)
+      return NextResponse.json({ error: 'Price configuration missing. Check Stripe env vars.' }, { status: 500 })
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/feed?success=true`,
+      cancel_url: `${origin}/activate`,
+      metadata: { userId: user.id, plan, billing },
+      subscription_data: {
+        // Free trial only on Starter plan — Growth/Agency pay immediately
+        ...(plan === 'starter' ? { trial_period_days: 7 } : {}),
+        metadata: { userId: user.id, plan },
+      },
     })
-    customerId = customer.id
 
-    await supabase
-      .from('users')
-      .update({ stripe_customer_id: customerId })
-      .eq('id', user.id)
-
-    console.log(`[Checkout] Stripe customer ${customerId} created and saved`)
+    console.log(`[Checkout] Session created: ${session.id}, URL: ${session.url}`)
+    return NextResponse.json({ url: session.url })
+  } catch (err) {
+    console.error(`[Checkout] Stripe error:`, err)
+    const message = err instanceof Error ? err.message : 'Failed to create checkout session'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  const origin = request.nextUrl.origin
-  const priceId = getPriceId(plan, billing)
-  console.log(`[Checkout] Using price ID: ${priceId}`)
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/feed?success=true`,
-    cancel_url: `${origin}/activate`,
-    metadata: { userId: user.id, plan, billing },
-    subscription_data: {
-      // Free trial only on Starter plan — Growth/Agency pay immediately
-      ...(plan === 'starter' ? { trial_period_days: 7 } : {}),
-      metadata: { userId: user.id, plan },
-    },
-  })
-
-  console.log(`[Checkout] Session created: ${session.id}`)
-  return NextResponse.json({ url: session.url })
 }

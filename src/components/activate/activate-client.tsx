@@ -49,10 +49,12 @@ export function ActivateClient({
       if (data.url) {
         window.location.href = data.url
       } else {
+        console.error('[Activate] Checkout failed:', data)
         setError(data.error || 'Something went wrong. Please try again.')
         setLoading(false)
       }
-    } catch {
+    } catch (err) {
+      console.error('[Activate] Network error:', err)
       setError('Network error. Please try again.')
       setLoading(false)
     }
@@ -70,7 +72,7 @@ export function ActivateClient({
 
       {/* Card */}
       <div
-        className="stagger-children w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
+        className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 animate-fade-in-up"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}
       >
         <h1
@@ -117,8 +119,12 @@ export function ActivateClient({
         <button
           onClick={handleActivate}
           disabled={loading}
-          className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#1D9E75] text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed animate-glow-pulse"
-          style={{ transition: 'all 0.2s' }}
+          className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#1D9E75] text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'all 0.2s',
+            animation: 'subtleGlow 3s ease-in-out infinite',
+          }}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
