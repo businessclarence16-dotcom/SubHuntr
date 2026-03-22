@@ -19,8 +19,12 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('=== WEBHOOK CALLED ===', new Date().toISOString())
+
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
+
+  console.log(`[Webhook] Signature present: ${!!signature}, Body length: ${body.length}`)
 
   if (!signature) {
     console.error('[Webhook] Missing stripe-signature header')
@@ -49,12 +53,19 @@ export async function POST(request: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
+      console.log('=== CHECKOUT SESSION COMPLETED ===')
+      console.log('[Webhook] Session ID:', session.id)
+      console.log('[Webhook] Customer:', session.customer)
+      console.log('[Webhook] Subscription:', session.subscription)
+      console.log('[Webhook] Metadata:', JSON.stringify(session.metadata))
+      console.log('[Webhook] Mode:', session.mode)
+
       // Read userId and plan from session metadata
       const userId = session.metadata?.userId
       const plan = session.metadata?.plan
       const customerId = session.customer as string
 
-      console.log(`[Webhook] checkout.session.completed — userId: ${userId}, plan: ${plan}, customer: ${customerId}, subscription: ${session.subscription}`)
+      console.log(`[Webhook] Extracted — userId: ${userId}, plan: ${plan}, customerId: ${customerId}`)
 
       if (userId && plan) {
         const { error } = await supabase

@@ -96,15 +96,15 @@ export function ActivateClient({
   if (activating) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 py-12">
-        <Link href="/" className="mb-8 flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#1D9E75]">
+        <Link href="/" className="mb-10 flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#1D9E75]">
             <span className="text-[8px] text-white">&#9679;</span>
           </div>
-          <span className="text-[0.95rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
+          <span className="text-[1.25rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
         </Link>
 
         <div
-          className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 text-center animate-fade-in-up"
+          className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-10 py-10 text-center animate-fade-in-up"
           style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}
         >
           {!timedOut ? (
@@ -155,15 +155,15 @@ export function ActivateClient({
   // ---- Normal activate screen ----
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 py-12">
-      <Link href="/" className="mb-8 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#1D9E75]">
+      <Link href="/" className="mb-10 flex items-center gap-2.5 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#1D9E75]">
           <span className="text-[8px] text-white">&#9679;</span>
         </div>
-        <span className="text-[0.95rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
+        <span className="text-[1.25rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
       </Link>
 
       <div
-        className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 animate-fade-in-up"
+        className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-10 py-10 animate-fade-in-up"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}
       >
         <h1
