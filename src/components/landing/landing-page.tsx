@@ -32,6 +32,7 @@ function CheckIcon() {
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [annual, setAnnual] = useState(false)
+  const [priceSwitching, setPriceSwitching] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [spVisible, setSpVisible] = useState(false)
   const [spDismissed, setSpDismissed] = useState(false)
@@ -148,18 +149,17 @@ export function LandingPage() {
             <Link href="/signup" className="nav-cta">Start free trial</Link>
           </div>
           <button
-            className="mob-tog"
+            className={`mob-tog${menuOpen ? ' open' : ''}`}
             aria-label="Menu"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h14M3 10h14M3 14h14" /></svg>
+            <span /><span /><span />
           </button>
         </div>
       </nav>
 
       {/* Mobile menu overlay */}
       <div className={`mob-overlay${menuOpen ? ' open' : ''}`}>
-        <button className="mob-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
         <a href="#how" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'how')}>How it works</a>
         <a href="#features" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'features')}>Features</a>
         <a href="#pricing" className="mob-link" onClick={(e) => handleSmoothScroll(e, 'pricing')}>Pricing</a>
@@ -389,7 +389,7 @@ export function LandingPage() {
           <p className="pr-desc rv">7-day free trial on Starter. Upgrade anytime. Cancel anytime.</p>
           <div className="pr-tog rv">
             <span>Monthly</span>
-            <div className={`tog${annual ? ' on' : ''}`} onClick={() => setAnnual(!annual)}></div>
+            <div className={`tog${annual ? ' on' : ''}`} onClick={() => { setPriceSwitching(true); setAnnual(!annual); setTimeout(() => setPriceSwitching(false), 200) }}></div>
             <span>Annual</span>
             <span className="pr-save">-20%</span>
           </div>
@@ -397,7 +397,7 @@ export function LandingPage() {
             <div className="plan rv">
               <div className="pn">Starter</div>
               <div className="ps">Solo founders testing the waters</div>
-              <div className="pp"><span className="c">$</span><span className="pv">{prices[0]}</span><span className="p">/mo</span></div>
+              <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[0]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[0]}/year</div>
               <Link href="/signup?plan=starter" className="pc">Start 7-day free trial</Link>
               <ul className="pl">
@@ -416,7 +416,7 @@ export function LandingPage() {
               <div className="plan-badge">Most popular</div>
               <div className="pn">Growth</div>
               <div className="ps">Teams serious about Reddit leads</div>
-              <div className="pp"><span className="c">$</span><span className="pv">{prices[1]}</span><span className="p">/mo</span></div>
+              <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[1]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[1]}/year</div>
               <Link href="/signup?plan=growth" className="pc">Subscribe — ${prices[1]}/mo</Link>
               <ul className="pl">
@@ -434,7 +434,7 @@ export function LandingPage() {
             <div className="plan rv">
               <div className="pn">Agency</div>
               <div className="ps">Agencies managing multiple clients</div>
-              <div className="pp"><span className="c">$</span><span className="pv">{prices[2]}</span><span className="p">/mo</span></div>
+              <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[2]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[2]}/year</div>
               <Link href="/signup?plan=agency" className="pc">Subscribe — ${prices[2]}/mo</Link>
               <ul className="pl">

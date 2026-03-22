@@ -28,19 +28,30 @@
 .landing .nav-links a{padding:6px 14px;font-size:.82rem;color:var(--t2);border-radius:6px;transition:all .15s;font-weight:500}
 .landing .nav-links a:hover{color:var(--t);background:rgba(255,255,255,0.04)}
 .landing .nav-r{display:flex;align-items:center;gap:10px}
-.landing .mob-tog{display:none;background:none;border:none;color:var(--t);cursor:pointer;padding:4px;z-index:110}
+/* Hamburger button — 3 spans that animate to X */
+.landing .mob-tog{display:none;background:none;border:none;color:var(--t);cursor:pointer;padding:4px;z-index:110;flex-direction:column;gap:4px;width:24px;height:24px;justify-content:center;align-items:center}
+.landing .mob-tog span{display:block;width:18px;height:2px;background:var(--t);border-radius:2px;transition:transform .3s var(--e),opacity .2s ease}
+.landing .mob-tog.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+.landing .mob-tog.open span:nth-child(2){opacity:0}
+.landing .mob-tog.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+/* Mobile overlay — hidden on desktop, animated on mobile via @media */
 .landing .mob-overlay{display:none}
-.landing .mob-overlay.open{display:flex;flex-direction:column;align-items:center;text-align:center;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);padding:80px 24px 32px;gap:0;z-index:98;animation:landingMenuIn .3s var(--e)}
 .landing .mob-overlay .mob-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--t);cursor:pointer;padding:8px;font-size:1.5rem;z-index:99}
-.landing .mob-overlay .mob-link{display:block;width:100%;font-size:1.1rem;font-weight:600;color:var(--t);padding:16px 0;border-bottom:1px solid var(--brd);transition:color .15s}
+/* Staggered link animations */
+.landing .mob-overlay .mob-link,.landing .mob-overlay .mob-login,.landing .mob-overlay .mob-cta{opacity:0;transform:translateY(-8px);transition:color .15s,opacity .25s ease,transform .25s ease}
+.landing .mob-overlay.open .mob-link,.landing .mob-overlay.open .mob-login,.landing .mob-overlay.open .mob-cta{opacity:1;transform:translateY(0)}
+.landing .mob-overlay.open :nth-child(2){transition-delay:.05s}
+.landing .mob-overlay.open :nth-child(3){transition-delay:.1s}
+.landing .mob-overlay.open :nth-child(4){transition-delay:.15s}
+.landing .mob-overlay.open :nth-child(5){transition-delay:.2s}
+.landing .mob-overlay.open :nth-child(6){transition-delay:.25s}
+.landing .mob-overlay.open :nth-child(7){transition-delay:.3s}
+.landing .mob-overlay .mob-link{display:block;width:100%;font-size:1.1rem;font-weight:600;color:var(--t);padding:16px 0;border-bottom:1px solid var(--brd)}
 .landing .mob-overlay .mob-link:hover{color:var(--a)}
-.landing .mob-overlay .mob-login{display:block;font-size:1rem;font-weight:500;color:var(--t2);padding:16px 0;text-align:center;margin-top:16px;transition:color .15s}
+.landing .mob-overlay .mob-login{display:block;font-size:1rem;font-weight:500;color:var(--t2);padding:16px 0;text-align:center;margin-top:16px}
 .landing .mob-overlay .mob-login:hover{color:var(--t)}
-.landing .mob-overlay .mob-cta{display:block;margin-top:16px;padding:14px 0;background:var(--a);color:#fff;font-size:.95rem;font-weight:700;text-align:center;border-radius:10px;border:none;cursor:pointer;transition:background .2s}
+.landing .mob-overlay .mob-cta{display:block;margin-top:16px;padding:14px 0;background:var(--a);color:#fff;font-size:.95rem;font-weight:700;text-align:center;border-radius:10px;border:none;cursor:pointer;width:100%;transition:background .2s,opacity .25s ease,transform .25s ease}
 .landing .mob-overlay .mob-cta:hover{background:var(--a2)}
-.landing .nav-links.open{display:flex!important;flex-direction:column;position:fixed;top:56px;left:0;right:0;bottom:0;background:var(--bg);padding:32px 24px;gap:8px;z-index:99;animation:landingMenuIn .3s var(--e)}
-.landing .nav-links.open a{font-size:1.1rem;padding:14px 0;border-bottom:1px solid var(--brd)}
-@keyframes landingMenuIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 .landing .nav-login{font-size:.82rem;color:var(--t2);font-weight:500;transition:color .15s}
 .landing .nav-login:hover{color:var(--t)}
 .landing .nav-cta{background:var(--a);color:#fff;padding:7px 16px;border-radius:8px;font-weight:600;font-size:.82rem;transition:all .2s}
@@ -295,6 +306,27 @@
 .landing .fl a:hover{color:var(--t2)}
 .landing .fc{font-size:.75rem;color:var(--t3)}
 
+/* ── HOVER POLISH ── */
+/* Feature cards lift */
+.landing .ft{transition:background .3s,transform .25s var(--e),border-color .25s ease}
+.landing .ft:hover{transform:translateY(-2px);border-color:var(--brd2)}
+/* Pricing cards lift */
+.landing .plan{transition:all .25s var(--e)}
+.landing .plan:hover{transform:translateY(-2px);border-color:var(--brd2)}
+/* CTA buttons glow + scale */
+.landing .btn-p{transition:all .2s var(--e)}
+.landing .btn-p:hover{transform:translateY(-1px) scale(1.02)}
+.landing .btn-p:active{transform:scale(0.98)}
+.landing .nav-cta{transition:all .2s var(--e)}
+.landing .nav-cta:hover{transform:scale(1.02);box-shadow:0 0 24px var(--gl2)}
+.landing .nav-cta:active{transform:scale(0.98)}
+.landing .pc{transition:all .2s var(--e)}
+.landing .pc:hover{transform:scale(1.02)}
+.landing .pc:active{transform:scale(0.98)}
+/* Pricing value fade on toggle */
+.landing .pv{display:inline-block;transition:opacity .15s ease,transform .15s ease}
+.landing .pv.switching{opacity:0;transform:translateY(4px)}
+
 /* ── REVEAL ── */
 .landing .rv{opacity:0;transform:translateY(20px);transition:all .7s var(--e)}
 .landing .rv.vis{opacity:1;transform:none}
@@ -313,6 +345,8 @@
   .landing nav .nav-links{display:none}
   .landing .nav-r{display:none}
   .landing .mob-tog{display:flex;align-items:center;justify-content:center}
+  .landing .mob-overlay{display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);padding:80px 24px 32px;z-index:98;flex-direction:column;align-items:center;text-align:center;gap:0;visibility:hidden;opacity:0;transform:translateY(-10px);pointer-events:none;transition:visibility .3s,opacity .3s var(--e),transform .3s var(--e)}
+  .landing .mob-overlay.open{visibility:visible;opacity:1;transform:translateY(0);pointer-events:auto}
   .landing footer .ctn{flex-direction:column;gap:10px}
   .landing .ba-grid{grid-template-columns:1fr;gap:16px}
   .landing .ba-arrow{transform:rotate(90deg);padding:0}
