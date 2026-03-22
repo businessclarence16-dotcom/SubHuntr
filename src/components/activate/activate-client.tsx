@@ -1,10 +1,10 @@
-// Activate client — shows setup summary and redirects to Stripe Checkout
+// Activate client — shows setup summary OR post-payment polling screen
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Loader2, Check, Shield } from 'lucide-react'
+import { Loader2, Check, Shield, ArrowRight } from 'lucide-react'
 
 interface ActivateClientProps {
   projectName: string
@@ -12,6 +12,7 @@ interface ActivateClientProps {
   subredditCount: number
   leadsFound: number
   plan: string
+  isPostPayment: boolean
 }
 
 const PLAN_INFO: Record<string, { label: string; price: number; trial: boolean }> = {
@@ -26,12 +27,43 @@ export function ActivateClient({
   subredditCount,
   leadsFound,
   plan,
+  isPostPayment,
 }: ActivateClientProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activating, setActivating] = useState(isPostPayment)
+  const [timedOut, setTimedOut] = useState(false)
 
   const info = PLAN_INFO[plan] ?? PLAN_INFO.starter
   const isTrial = info.trial
+
+  // Poll for subscription status after Stripe payment
+  useEffect(() => {
+    if (!isPostPayment) return
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/stripe/status')
+        const data = await res.json()
+        if (data.active) {
+          clearInterval(interval)
+          window.location.href = '/feed?activated=true'
+        }
+      } catch (err) {
+        console.error('[Activate] Polling error:', err)
+      }
+    }, 2000)
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval)
+      setTimedOut(true)
+    }, 30000)
+
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [isPostPayment])
 
   async function handleActivate() {
     setLoading(true)
@@ -60,9 +92,69 @@ export function ActivateClient({
     }
   }
 
+  // ---- Post-payment activating screen ----
+  if (activating) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 py-12">
+        <Link href="/" className="mb-8 flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#1D9E75]">
+            <span className="text-[8px] text-white">&#9679;</span>
+          </div>
+          <span className="text-[0.95rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
+        </Link>
+
+        <div
+          className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 text-center animate-fade-in-up"
+          style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}
+        >
+          {!timedOut ? (
+            <>
+              {/* Spinner */}
+              <div
+                className="mx-auto mb-6 h-10 w-10 rounded-full border-[3px] border-[rgba(255,255,255,0.1)] border-t-[#1D9E75]"
+                style={{ animation: 'spin 0.8s linear infinite' }}
+              />
+              <h2
+                className="mb-2 text-[1.2rem] font-[800] text-[#fafafa]"
+                style={{ letterSpacing: '-0.02em' }}
+              >
+                Activating your account...
+              </h2>
+              <p className="text-[0.85rem] text-[#a1a1aa]">
+                This usually takes a few seconds.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2
+                className="mb-2 text-[1.2rem] font-[800] text-[#fafafa]"
+                style={{ letterSpacing: '-0.02em' }}
+              >
+                Taking longer than expected
+              </h2>
+              <p className="mb-6 text-[0.85rem] text-[#a1a1aa]">
+                Your payment was received. If your dashboard isn&apos;t ready yet, try refreshing in a moment.
+              </p>
+              <button
+                onClick={() => { window.location.href = '/feed' }}
+                className="inline-flex h-[44px] items-center gap-2 rounded-[10px] bg-[#1D9E75] px-6 text-[0.88rem] font-bold text-white"
+                style={{ boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)' }}
+              >
+                Continue to dashboard <ArrowRight className="h-4 w-4" />
+              </button>
+              <p className="mt-4 text-[0.72rem] text-[#52525b]">
+                Still having issues? <a href="mailto:contact@subhuntr.com" className="text-[#1D9E75] underline">Contact support</a>
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ---- Normal activate screen ----
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 py-12">
-      {/* Logo */}
       <Link href="/" className="mb-8 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
         <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#1D9E75]">
           <span className="text-[8px] text-white">&#9679;</span>
@@ -70,7 +162,6 @@ export function ActivateClient({
         <span className="text-[0.95rem] font-bold tracking-tight text-[#fafafa]">SubHuntr</span>
       </Link>
 
-      {/* Card */}
       <div
         className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8 animate-fade-in-up"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}

@@ -8,7 +8,7 @@ import { ActivateClient } from '@/components/activate/activate-client'
 export default async function ActivatePage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string }>
+  searchParams: Promise<{ plan?: string; success?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -60,6 +60,7 @@ export default async function ActivatePage({
 
   const params = await searchParams
   const selectedPlan = params.plan || 'starter'
+  const isPostPayment = params.success === 'true'
 
   return (
     <ActivateClient
@@ -68,6 +69,7 @@ export default async function ActivatePage({
       subredditCount={subredditCount}
       leadsFound={leadsFound}
       plan={selectedPlan}
+      isPostPayment={isPostPayment}
     />
   )
 }
