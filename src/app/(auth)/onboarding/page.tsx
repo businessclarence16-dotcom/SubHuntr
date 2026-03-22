@@ -476,7 +476,7 @@ function OnboardingContent() {
           >
             {/* Card — matches .demo-w */}
             <div
-              className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
+              className="stagger-children rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
               style={{
                 boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 50px rgba(0,0,0,0.5), 0 0 80px rgba(29,158,117,0.05)',
               }}
@@ -998,12 +998,13 @@ function OnboardingContent() {
                 <p className="mb-3 text-left text-[0.72rem] font-semibold uppercase text-[#52525b]" style={{ letterSpacing: '0.1em' }}>
                   {scanPostsFound > 0 ? 'Top matches' : 'Example leads'}
                 </p>
-                {(topPosts.length > 0 ? topPosts : MOCK_PREVIEW_POSTS).map((post) => {
+                {(topPosts.length > 0 ? topPosts : MOCK_PREVIEW_POSTS).map((post, idx) => {
                   const score = post.relevance_score ?? 0
                   return (
                     <div
                       key={post.id}
                       className="flex items-center gap-3 rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 text-left animate-fade-in-up"
+                      style={{ animationDelay: `${0.15 * idx}s` }}
                     >
                       <div
                         className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[6px] font-mono text-[0.75rem] font-bold ${

@@ -61,7 +61,7 @@ export function ActivateClient({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 py-12">
       {/* Logo */}
-      <Link href="/" className="mb-8 flex items-center gap-2">
+      <Link href="/" className="mb-8 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
         <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-[#1D9E75]">
           <span className="text-[8px] text-white">&#9679;</span>
         </div>
@@ -70,7 +70,7 @@ export function ActivateClient({
 
       {/* Card */}
       <div
-        className="w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
+        className="stagger-children w-full max-w-[480px] rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#131316] p-8"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.4)' }}
       >
         <h1
@@ -117,11 +117,8 @@ export function ActivateClient({
         <button
           onClick={handleActivate}
           disabled={loading}
-          className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#1D9E75] text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
-            transition: 'all 0.2s',
-          }}
+          className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] bg-[#1D9E75] text-[0.92rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed animate-glow-pulse"
+          style={{ transition: 'all 0.2s' }}
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />

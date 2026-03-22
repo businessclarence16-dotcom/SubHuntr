@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md animate-fade-in-up">
+      <div className="stagger-children w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex items-center justify-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
