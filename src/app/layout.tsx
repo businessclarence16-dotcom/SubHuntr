@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { PostHogProvider } from '@/components/providers/posthog-provider'
+import { CrispChat } from '@/components/CrispChat'
 import './globals.css'
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -54,6 +55,7 @@ export default function RootLayout({
           {children}
         </PostHogProvider>
         <Toaster />
+        <CrispChat />
       </body>
     </html>
   )
