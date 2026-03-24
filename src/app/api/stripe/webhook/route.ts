@@ -185,6 +185,56 @@ export async function POST(request: NextRequest) {
       break
     }
 
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = invoice.customer as string
+
+      console.log(`[Webhook] invoice.payment_failed — customer: ${customerId}`)
+
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('stripe_customer_id', customerId)
+        .single()
+
+      if (user) {
+        // Don't reset plan yet — Stripe will retry. Just log it.
+        console.log(`[Webhook] Payment failed for user ${user.id} — Stripe will retry`)
+      }
+      break
+    }
+
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = invoice.customer as string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subscriptionId = (invoice as any).subscription as string | null
+
+      console.log(`[Webhook] invoice.payment_succeeded — customer: ${customerId}, subscription: ${subscriptionId}`)
+
+      if (subscriptionId) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('id')
+          .eq('stripe_customer_id', customerId)
+          .single()
+
+        if (user) {
+          // Ensure subscription ID is stored (handles edge cases)
+          await supabase
+            .from('users')
+            .update({
+              stripe_subscription_id: subscriptionId,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id)
+
+          console.log(`[Webhook] User ${user.id} payment succeeded, subscription ${subscriptionId} confirmed`)
+        }
+      }
+      break
+    }
+
     default:
       console.log(`[Webhook] Unhandled event type: ${event.type}`)
   }
