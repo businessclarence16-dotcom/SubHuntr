@@ -363,31 +363,55 @@ export function LandingPage() {
               <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Solo founder, developer tools</div><div className="tc-ro">Early access user</div></div></div>
             </div>
           </div>
-          <div className="comp-lbl rv">How we compare to alternatives</div>
-          <div className="comp-grid rv">
+          <div className="comp-hd rv">
+            <h3 className="comp-title">How we compare to alternatives</h3>
+            <p className="comp-sub">Transparent comparison — we show their strengths too.</p>
+          </div>
+
+          {/* Desktop table */}
+          <table className="comp-tbl rv">
+            <thead>
+              <tr>
+                <th className="comp-th-feat"></th>
+                <th className="comp-th-hl"><span className="comp-th-name comp-green">SubHuntr</span><span className="comp-th-badge">✦ Best value</span></th>
+                <th><span className="comp-th-name">Redreach</span></th>
+                <th><span className="comp-th-name">Launch Club</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Starting price</td><td className="comp-th-hl"><strong className="comp-green">$29/mo</strong></td><td>$19/mo</td><td><span className="comp-expensive">$199-499/mo</span></td></tr>
+              <tr><td>Self-service</td><td className="comp-th-hl"><span className="comp-y">✓</span></td><td><span className="comp-y">✓</span></td><td><span className="comp-n">✗</span></td></tr>
+              <tr><td>AI intent scoring</td><td className="comp-th-hl"><span className="comp-y">✓ (1-10)</span></td><td><span className="comp-n">✗</span></td><td><span className="comp-n">✗</span></td></tr>
+              <tr><td>Reply templates</td><td className="comp-th-hl"><span className="comp-y">✓ (52+)</span></td><td><span className="comp-n">✗</span></td><td><span className="comp-n">✗</span></td></tr>
+              <tr><td>Real-time alerts</td><td className="comp-th-hl"><span className="comp-y">✓</span></td><td><span className="comp-muted">Basic</span></td><td><span className="comp-n">✗</span></td></tr>
+              <tr><td>Done-for-you</td><td className="comp-th-hl"><span className="comp-n">✗</span></td><td><span className="comp-n">✗</span></td><td><span className="comp-y">✓</span></td></tr>
+              <tr><td>Ethical</td><td className="comp-th-hl"><span className="comp-y">✓</span></td><td><span className="comp-y">✓</span></td><td><span className="comp-n">✗</span><span className="comp-warn">Uses fake accounts</span></td></tr>
+              <tr className="comp-last"><td>Competitor tracking</td><td className="comp-th-hl"><span className="comp-y">✓</span></td><td><span className="comp-n">✗</span></td><td><span className="comp-y">✓</span></td></tr>
+            </tbody>
+          </table>
+
+          {/* Mobile cards */}
+          <div className="comp-mob rv">
             {[
-              {
-                name: 'SubHuntr', price: '$29/mo', highlight: true, badge: 'You are here',
-                features: { 'Self-service': true, 'AI intent scoring': true, 'Competitor tracking': true, '52+ templates': true, 'UTM tracking': true, 'Ethical (no fake votes)': true },
-              },
-              {
-                name: 'Launch Club', price: '$199-499/mo', highlight: false,
-                features: { 'Self-service': false, 'AI intent scoring': false, 'Competitor tracking': true, '52+ templates': false, 'UTM tracking': false, 'Ethical (no fake votes)': false },
-              },
-              {
-                name: 'Redreach', price: '$19/mo', highlight: false,
-                features: { 'Self-service': true, 'AI intent scoring': false, 'Competitor tracking': false, '52+ templates': false, 'UTM tracking': false, 'Ethical (no fake votes)': true },
-              },
+              { name: 'SubHuntr', price: '$29/mo', hl: true, rows: [['Self-service','✓'],['AI intent scoring','✓ (1-10)'],['Reply templates','✓ (52+)'],['Real-time alerts','✓'],['Done-for-you','✗'],['Ethical','✓'],['Competitor tracking','✓']] },
+              { name: 'Redreach', price: '$19/mo', hl: false, rows: [['Self-service','✓'],['AI intent scoring','✗'],['Reply templates','✗'],['Real-time alerts','Basic'],['Done-for-you','✗'],['Ethical','✓'],['Competitor tracking','✗']] },
+              { name: 'Launch Club', price: '$199-499/mo', hl: false, rows: [['Self-service','✗'],['AI intent scoring','✗'],['Reply templates','✗'],['Real-time alerts','✗'],['Done-for-you','✓'],['Ethical','✗'],['Competitor tracking','✓']], warn: 'Uses fake accounts' },
             ].map((col) => (
-              <div key={col.name} className={`comp-card${col.highlight ? ' comp-hl' : ''}`}>
-                {col.badge && <span className="comp-badge">{col.badge}</span>}
-                <h4 className="comp-name">{col.name}</h4>
-                <div className="comp-price">{col.price}</div>
-                <ul className="comp-list">
-                  {Object.entries(col.features).map(([feat, has]) => (
-                    <li key={feat}><span className={has ? 'comp-yes' : 'comp-no'}>{has ? '✓' : '✗'}</span> {feat}</li>
+              <div key={col.name} className={`comp-mc${col.hl ? ' comp-mc-hl' : ''}`}>
+                <div className="comp-mc-hd">
+                  <span className={`comp-mc-name${col.hl ? ' comp-green' : ''}`}>{col.name}</span>
+                  {col.hl && <span className="comp-mc-badge">✦ Best value</span>}
+                </div>
+                <div className={`comp-mc-price${col.hl ? ' comp-green' : ''}`}>{col.price}</div>
+                <ul className="comp-mc-list">
+                  {col.rows.map(([feat, val]) => (
+                    <li key={feat}>
+                      <span className={val.startsWith('✓') ? 'comp-y' : val.startsWith('✗') ? 'comp-n' : 'comp-muted'}>{val}</span>
+                      <span className="comp-mc-feat">{feat}</span>
+                    </li>
                   ))}
                 </ul>
+                {col.warn && <p className="comp-mc-warn">{col.warn}</p>}
               </div>
             ))}
           </div>

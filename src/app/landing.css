@@ -225,17 +225,43 @@
 .landing .tc-ro{font-size:.65rem;color:var(--t3)}
 .landing .tc-v{margin-left:auto;font-size:.6rem;color:var(--a);font-weight:500}
 
-.landing .comp-lbl{text-align:center;margin-bottom:24px;font-size:.85rem;color:var(--t3);font-weight:600}
-.landing .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:0 auto}
-.landing .comp-card{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:24px;position:relative}
-.landing .comp-card.comp-hl{border-color:var(--a);box-shadow:0 0 24px rgba(29,158,117,0.1)}
-.landing .comp-badge{display:inline-block;font-size:.6rem;font-weight:700;color:var(--a);background:var(--gl);padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
-.landing .comp-name{font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px}
-.landing .comp-price{font-size:.82rem;color:var(--t2);margin-bottom:16px;font-weight:500}
-.landing .comp-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-.landing .comp-list li{font-size:.8rem;color:var(--t2);display:flex;align-items:center;gap:8px}
-.landing .comp-yes{color:#34d399;font-weight:700;font-size:.85rem;flex-shrink:0;width:16px;text-align:center}
-.landing .comp-no{color:#ef4444;font-weight:700;font-size:.85rem;flex-shrink:0;width:16px;text-align:center}
+/* Comparison — header */
+.landing .comp-hd{text-align:center;margin-bottom:32px}
+.landing .comp-title{font-size:1.3rem;font-weight:800;color:var(--t1);letter-spacing:-0.02em;margin-bottom:6px}
+.landing .comp-sub{font-size:.82rem;color:var(--t3)}
+/* Comparison — shared */
+.landing .comp-y{color:#34d399;font-weight:600}
+.landing .comp-n{color:#ef4444;font-weight:600}
+.landing .comp-muted{color:var(--t3);font-weight:500}
+.landing .comp-green{color:var(--a)}
+.landing .comp-expensive{color:var(--t3);font-weight:600}
+.landing .comp-warn{display:block;font-size:.6rem;color:#ef4444;margin-top:2px;font-weight:400}
+/* Comparison — desktop table */
+.landing .comp-tbl{width:100%;max-width:960px;margin:0 auto;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--brd);border-radius:14px;overflow:hidden;font-size:.82rem}
+.landing .comp-tbl thead tr{background:rgba(255,255,255,0.03)}
+.landing .comp-tbl th{padding:18px 24px;text-align:center;vertical-align:top;border-bottom:1px solid var(--brd)}
+.landing .comp-th-feat{text-align:left;width:30%}
+.landing .comp-th-name{display:block;font-size:.9rem;font-weight:700;color:var(--t1)}
+.landing .comp-th-badge{display:block;font-size:.58rem;color:var(--a);font-weight:600;margin-top:3px;letter-spacing:.03em}
+.landing .comp-tbl td{padding:14px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);color:var(--t2);font-weight:500;transition:background .2s}
+.landing .comp-tbl td:first-child{text-align:left;color:var(--t3);font-weight:500}
+.landing .comp-tbl .comp-th-hl{background:rgba(29,158,117,0.05)}
+.landing .comp-tbl tbody tr:hover td{background:rgba(255,255,255,0.02)}
+.landing .comp-tbl tbody tr:hover .comp-th-hl{background:rgba(29,158,117,0.08)}
+.landing .comp-tbl .comp-last td{border-bottom:none}
+/* Comparison — mobile cards (hidden on desktop) */
+.landing .comp-mob{display:none}
+.landing .comp-mc{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:24px;margin-bottom:16px}
+.landing .comp-mc.comp-mc-hl{border-color:var(--a);box-shadow:0 0 24px rgba(29,158,117,0.1)}
+.landing .comp-mc-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.landing .comp-mc-name{font-size:1rem;font-weight:700;color:var(--t1)}
+.landing .comp-mc-badge{font-size:.58rem;color:var(--a);font-weight:600;background:var(--gl);padding:3px 8px;border-radius:20px}
+.landing .comp-mc-price{font-size:.9rem;font-weight:700;margin-bottom:16px}
+.landing .comp-mc-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.landing .comp-mc-list li{font-size:.8rem;color:var(--t2);display:flex;align-items:center;gap:8px}
+.landing .comp-mc-list li .comp-y,.landing .comp-mc-list li .comp-n,.landing .comp-mc-list li .comp-muted{flex-shrink:0;min-width:42px}
+.landing .comp-mc-feat{color:var(--t3)}
+.landing .comp-mc-warn{font-size:.68rem;color:#ef4444;margin-top:12px}
 
 /* ── PRICING ── */
 .landing .pricing{border-top:1px solid var(--brd)}
@@ -338,7 +364,9 @@
 @media(max-width:900px){
   .landing .how-f{flex-direction:column;gap:40px}
   .landing .how-l{position:static}
-  .landing .pain-g,.landing .feat-g,.landing .pr-grid,.landing .tg,.landing .comp-grid{grid-template-columns:1fr}
+  .landing .pain-g,.landing .feat-g,.landing .pr-grid,.landing .tg{grid-template-columns:1fr}
+  .landing .comp-tbl{display:none}
+  .landing .comp-mob{display:block}
   .landing .ft.w{grid-column:span 1}
   .landing .demo-sb{display:none}
   .landing .demo-post-btn{display:none}
