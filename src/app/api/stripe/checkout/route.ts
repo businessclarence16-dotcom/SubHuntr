@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
       metadata: { userId: user.id, plan, billing },
       subscription_data: {
-        // Free trial only on Starter plan — Growth/Agency pay immediately
-        ...(plan === 'starter' ? { trial_period_days: 7 } : {}),
+        // 7-day free trial on first subscription only (checkout is blocked for existing subscribers)
+        trial_period_days: 7,
         metadata: { userId: user.id, plan },
       },
     })

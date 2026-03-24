@@ -50,11 +50,12 @@ export async function POST(request: NextRequest) {
   const newPriceId = getPriceId(plan, billing)
   console.log(`[ChangePlan] Updating item ${itemId} to price ${newPriceId}`)
 
-  // Update the subscription with the new price
+  // Update the subscription with the new price — end any active trial immediately
   await stripe.subscriptions.update(profile.stripe_subscription_id, {
     items: [{ id: itemId, price: newPriceId }],
     metadata: { userId: user.id, plan },
     proration_behavior: 'create_prorations',
+    trial_end: 'now',
   })
 
   // Update plan in Supabase immediately
