@@ -73,7 +73,10 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/activate') ||
     pathname.startsWith('/api/stripe/checkout') ||
     pathname.startsWith('/api/stripe/portal') ||
-    pathname.startsWith('/api/')
+    pathname.startsWith('/api/stripe/status') ||
+    pathname.startsWith('/api/stripe/change-plan') ||
+    pathname.startsWith('/api/account/delete') ||
+    pathname.startsWith('/api/settings')
 
   // 4. Dashboard routes require active subscription — redirect to /activate if none
   if (user && !isPublicPage && !noSubscriptionRequired) {

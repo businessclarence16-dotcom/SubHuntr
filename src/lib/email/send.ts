@@ -25,7 +25,7 @@ export async function sendEmail(
   }
 
   if (!supabaseAdmin) {
-    console.log(`[Email] Skipping "${emailType}" — SupabaseServiceRoleKey not configured`)
+    console.log(`[Email] Skipping "${emailType}" — admin DB client not configured`)
     return false
   }
 
