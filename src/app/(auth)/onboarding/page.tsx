@@ -66,7 +66,13 @@ const MOCK_PREVIEW_POSTS: TopPost[] = [
   { id: 'mock-3', title: 'Any good Intercom alternatives for a bootstrapped startup?', subreddit: 'startups', relevance_score: 7, url: '#' },
 ]
 
-const stepLabels = ['Your product', 'Keywords', 'Subreddits', 'First scan']
+const stepLabels = ['Your product', 'Keywords', 'Subreddits', 'First scan', 'Choose plan']
+
+const PLAN_DEFS = [
+  { id: 'starter', name: 'Starter', monthlyPrice: 29, annualPerMonth: 24.17, annualTotal: 290, subtitle: 'Solo founders testing the waters', trial: true, features: ['5 keywords', '15 subreddits', '15-min scan', '1 project', 'Email alerts'] },
+  { id: 'growth', name: 'Growth', monthlyPrice: 79, annualPerMonth: 65.83, annualTotal: 790, subtitle: 'Teams serious about Reddit leads', popular: true, trial: true, features: ['25 keywords', '75 subreddits', '5-min scan', '3 projects', 'Slack + Discord', 'Competitor tracking'] },
+  { id: 'agency', name: 'Agency', monthlyPrice: 199, annualPerMonth: 165.83, annualTotal: 1990, subtitle: 'Agencies managing multiple clients', trial: true, features: ['Unlimited keywords', 'Unlimited subreddits', '2-min scan', '10 projects', 'Everything in Growth', 'CSV export + Priority support'] },
+]
 
 // Shared input style matching .roi-input from landing.css
 const inputClass =
@@ -389,16 +395,44 @@ function OnboardingContent() {
     runScan()
   }, [step, projectId, keywords.length, subredditsList])
 
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  async function launchCheckout(plan: string, billing: 'monthly' | 'annual') {
+    setCheckoutLoading(plan)
+    localStorage.setItem('subhuntr_onboarding_completed', 'true')
+    document.cookie = 'selected_plan=; path=/; max-age=0'
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, billing }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+    } catch {
+      // fallback
+    }
+    setCheckoutLoading(null)
+  }
+
   function handleGoToFeed() {
     // Mark onboarding as completed for welcome banner
     localStorage.setItem('subhuntr_onboarding_completed', 'true')
-
-    // Clear the plan cookie
     document.cookie = 'selected_plan=; path=/; max-age=0'
 
-    // Redirect to /activate with plan param — card required before dashboard
-    const planParam = selectedPlan ? `?plan=${selectedPlan}` : '?plan=starter'
-    router.push(`/activate${planParam}`)
+    // If plan was pre-selected from landing page, skip plan selection and go to checkout
+    if (selectedPlan && ['starter', 'growth', 'agency'].includes(selectedPlan)) {
+      launchCheckout(selectedPlan, 'monthly')
+      return
+    }
+
+    // Otherwise go to plan selection step
+    trackEvent('onboarding_step_completed', { step: 4 })
+    goForward(5)
   }
 
   // URL detection for product feedback
@@ -467,7 +501,7 @@ function OnboardingContent() {
 
       {/* Step content */}
       <div className="flex flex-1 items-center justify-center px-4 py-8">
-        {step <= 3 ? (
+        {step <= 3 && (
           <div
             key={step}
             className={`w-full max-w-[640px] ${
@@ -926,10 +960,11 @@ function OnboardingContent() {
 
             {/* Step indicator */}
             <p className="mt-4 text-center text-[0.75rem] text-[#52525b]">
-              Step {step} of 4 — This takes about 2 minutes
+              Step {step} of 5 — This takes about 2 minutes
             </p>
           </div>
-        ) : (
+        )}
+        {step === 4 && (
           /* ====== STEP 4 — Live scan screen ====== */
           <div className="w-full max-w-[540px] animate-fade-in-up text-center">
             {/* Radar animation */}
@@ -1060,6 +1095,127 @@ function OnboardingContent() {
                 Scan encountered an issue, but your project is ready. You can scan again from your feed.
               </p>
             )}
+          </div>
+        )}
+        {step === 5 && (
+          /* ====== STEP 5 — Choose your plan ====== */
+          <div className="w-full max-w-[960px] animate-fade-in-up">
+            <div className="mb-8 text-center">
+              <h2
+                className="mb-2 text-[clamp(1.3rem,3vw,1.6rem)] font-[800] text-[#fafafa]"
+                style={{ letterSpacing: '-0.035em' }}
+              >
+                Choose your plan
+              </h2>
+              <p className="text-[0.88rem] text-[#a1a1aa]">
+                7-day free trial on every plan. Cancel anytime.
+              </p>
+
+              {/* Monthly / Yearly toggle */}
+              <div className="mt-6 flex items-center justify-center gap-3 text-[0.82rem]">
+                <span className={billingPeriod === 'monthly' ? 'font-semibold text-[#fafafa]' : 'text-[#a1a1aa]'}>Monthly</span>
+                <button
+                  type="button"
+                  onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'annual' : 'monthly')}
+                  className="relative h-[22px] w-[42px] rounded-full"
+                  style={{
+                    background: billingPeriod === 'annual' ? '#1D9E75' : '#131316',
+                    border: billingPeriod === 'annual' ? '1px solid #1D9E75' : '1px solid rgba(255,255,255,0.06)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div
+                    className="absolute top-[2px] h-4 w-4 rounded-full bg-white"
+                    style={{ left: billingPeriod === 'annual' ? 22 : 2, transition: 'left 0.2s' }}
+                  />
+                </button>
+                <span className={billingPeriod === 'annual' ? 'font-semibold text-[#fafafa]' : 'text-[#a1a1aa]'}>Yearly</span>
+                {billingPeriod === 'annual' && (
+                  <span className="rounded bg-[rgba(29,158,117,0.08)] px-2 py-0.5 font-mono text-[0.68rem] text-[#1D9E75]">
+                    2 months free
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Plan cards */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {PLAN_DEFS.map((p) => {
+                const price = billingPeriod === 'annual' ? p.annualPerMonth : p.monthlyPrice
+                const isPopular = 'popular' in p && p.popular
+                return (
+                  <div
+                    key={p.id}
+                    className="relative rounded-[14px] p-6"
+                    style={{
+                      background: '#131316',
+                      border: isPopular ? '1px solid #1D9E75' : '1px solid rgba(255,255,255,0.06)',
+                      boxShadow: isPopular ? '0 0 50px rgba(29,158,117,0.08)' : 'none',
+                      transition: 'all 0.3s',
+                    }}
+                  >
+                    {isPopular && (
+                      <div
+                        className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#1D9E75] px-3 py-0.5 text-[0.65rem] font-bold uppercase text-white"
+                        style={{ letterSpacing: '0.06em' }}
+                      >
+                        Most popular
+                      </div>
+                    )}
+                    <p className="text-[1rem] font-bold text-[#fafafa]">{p.name}</p>
+                    <p className="mb-4 text-[0.75rem] text-[#52525b]">{p.subtitle}</p>
+
+                    <div className="mb-1">
+                      {billingPeriod === 'annual' && (
+                        <span className="mr-1.5 text-[0.9rem] text-[#52525b] line-through">${p.monthlyPrice}</span>
+                      )}
+                      <span className="text-[2.2rem] font-[800] text-[#fafafa]" style={{ letterSpacing: '-0.04em', lineHeight: 1 }}>
+                        <span className="text-[1.1rem] text-[#a1a1aa]">$</span>{price}
+                      </span>
+                      <span className="text-[0.82rem] text-[#52525b]">/mo</span>
+                    </div>
+                    {billingPeriod === 'annual' && (
+                      <p className="mb-4 font-mono text-[0.72rem] text-[#52525b]">
+                        Billed ${p.annualTotal.toLocaleString()}/year · <span className="text-[#1D9E75]">2 months free</span>
+                      </p>
+                    )}
+                    {billingPeriod === 'monthly' && <div className="mb-4" />}
+
+                    <button
+                      type="button"
+                      onClick={() => launchCheckout(p.id, billingPeriod === 'annual' ? 'annual' : 'monthly')}
+                      disabled={checkoutLoading === p.id}
+                      className="mb-5 flex w-full items-center justify-center gap-2 rounded-[8px] py-2.5 text-[0.85rem] font-semibold"
+                      style={{
+                        background: isPopular ? '#1D9E75' : 'rgba(255,255,255,0.05)',
+                        color: isPopular ? '#fff' : '#fafafa',
+                        border: isPopular ? '1px solid #1D9E75' : '1px solid rgba(255,255,255,0.06)',
+                        cursor: checkoutLoading ? 'wait' : 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {checkoutLoading === p.id ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting...</>
+                      ) : (
+                        'Start 7-day free trial'
+                      )}
+                    </button>
+
+                    <ul className="space-y-2">
+                      {p.features.map((f) => (
+                        <li key={f} className="flex items-center gap-2 text-[0.78rem] text-[#a1a1aa]">
+                          <Check className="h-3.5 w-3.5 shrink-0 text-[#1D9E75]" /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
+
+            <p className="mt-6 text-center text-[0.78rem] text-[#52525b]">
+              Credit card required · Cancel anytime · Secured by Stripe
+            </p>
           </div>
         )}
       </div>
