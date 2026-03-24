@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/activate?success=true`,
       cancel_url: `${origin}/activate`,
+      allow_promotion_codes: true,
       metadata: { userId: user.id, plan, billing },
       subscription_data: {
         // Free trial only on Starter plan — Growth/Agency pay immediately

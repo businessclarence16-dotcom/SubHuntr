@@ -18,8 +18,8 @@ const DEMO_POSTS = [
 ]
 
 const MONTHLY_PRICES = [29, 79, 199]
-const ANNUAL_PRICES = [23, 63, 159]
-const ANNUAL_TOTALS = ['$276', '$756', '$1,908']
+const ANNUAL_PRICES = [24.17, 65.83, 165.83]
+const ANNUAL_TOTALS = ['$290', '$790', '$1,990']
 
 function CheckIcon() {
   return (
@@ -437,7 +437,7 @@ export function LandingPage() {
               <div className="pn">Starter</div>
               <div className="ps">Solo founders testing the waters</div>
               <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[0]}</span><span className="p">/mo</span></div>
-              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[0]}/year</div>
+              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[0]}/year · <span style={{ color: '#1D9E75' }}>2 months free</span></div>
               <Link href="/signup?plan=starter" className="pc">Start 7-day free trial</Link>
               <ul className="pl">
                 <li>5 keywords</li>
@@ -456,7 +456,7 @@ export function LandingPage() {
               <div className="pn">Growth</div>
               <div className="ps">Teams serious about Reddit leads</div>
               <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[1]}</span><span className="p">/mo</span></div>
-              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[1]}/year</div>
+              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[1]}/year · <span style={{ color: '#1D9E75' }}>2 months free</span></div>
               <Link href="/signup?plan=growth" className="pc">Subscribe — ${prices[1]}/mo</Link>
               <ul className="pl">
                 <li>25 keywords</li>
@@ -474,7 +474,7 @@ export function LandingPage() {
               <div className="pn">Agency</div>
               <div className="ps">Agencies managing multiple clients</div>
               <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[2]}</span><span className="p">/mo</span></div>
-              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[2]}/year</div>
+              <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[2]}/year · <span style={{ color: '#1D9E75' }}>2 months free</span></div>
               <Link href="/signup?plan=agency" className="pc">Subscribe — ${prices[2]}/mo</Link>
               <ul className="pl">
                 <li>Unlimited keywords</li>

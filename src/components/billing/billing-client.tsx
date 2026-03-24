@@ -27,7 +27,8 @@ const planDefs = [
     id: 'starter' as const,
     name: 'Starter',
     monthlyPrice: 29,
-    annualPrice: 23,
+    annualPricePerMonth: 24.17,
+    annualTotal: 290,
     subtitle: 'For individuals getting started',
     features: [
       { text: '1 project', on: true },
@@ -43,7 +44,8 @@ const planDefs = [
     id: 'growth' as const,
     name: 'Growth',
     monthlyPrice: 79,
-    annualPrice: 63,
+    annualPricePerMonth: 65.83,
+    annualTotal: 790,
     subtitle: 'For scaling your Reddit acquisition',
     popular: true,
     features: [
@@ -60,7 +62,8 @@ const planDefs = [
     id: 'agency' as const,
     name: 'Agency',
     monthlyPrice: 199,
-    annualPrice: 159,
+    annualPricePerMonth: 165.83,
+    annualTotal: 1990,
     subtitle: 'For agencies and power users',
     features: [
       { text: '10 projects', on: true },
@@ -396,7 +399,7 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
             color: '#1D9E75', background: 'rgba(29,158,117,0.08)',
             padding: '2px 7px', borderRadius: 4,
           }}>
-            Save 20%
+            2 months free
           </span>
         )}
       </div>
@@ -412,7 +415,7 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
           const thisIdx = planOrder.indexOf(p.id)
           const isUpgrade = thisIdx > currentIdx && p.id !== 'enterprise'
           const isDowngrade = thisIdx < currentIdx && p.id !== 'enterprise'
-          const price = annual ? p.annualPrice : p.monthlyPrice
+          const price = annual ? p.annualPricePerMonth : p.monthlyPrice
           const isCustom = 'isCustom' in p && p.isCustom
 
           return (
@@ -468,6 +471,11 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
               ) : (
                 <>
                   <div style={{ marginBottom: 4 }}>
+                    {annual && (
+                      <span style={{ fontSize: '.9rem', color: '#52525b', textDecoration: 'line-through', marginRight: 6 }}>
+                        ${p.monthlyPrice}
+                      </span>
+                    )}
                     <span style={{ fontSize: '2.6rem', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, color: '#fafafa' }}>
                       <span style={{ fontSize: '1.3rem', color: '#a1a1aa', verticalAlign: 'top' }}>$</span>
                       {price}
@@ -476,7 +484,7 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
                   </div>
                   {annual ? (
                     <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '.72rem', color: '#52525b', marginBottom: 22 }}>
-                      ${price * 12}/year — billed annually
+                      Billed ${p.annualTotal?.toLocaleString()}/year · <span style={{ color: '#1D9E75' }}>2 months free</span>
                     </p>
                   ) : (
                     <div style={{ marginBottom: 22 }} />
