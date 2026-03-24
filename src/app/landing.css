@@ -225,16 +225,17 @@
 .landing .tc-ro{font-size:.65rem;color:var(--t3)}
 .landing .tc-v{margin-left:auto;font-size:.6rem;color:var(--a);font-weight:500}
 
-.landing .comp-lbl{text-align:center;margin-bottom:20px;font-size:.8rem;color:var(--t3);font-weight:500}
-.landing .ct{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--brd);border-radius:12px;overflow:hidden;font-size:.82rem}
-.landing .ct th,.landing .ct td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--brd)}
-.landing .ct thead th{background:var(--card);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
-.landing .ct thead th:nth-child(2){color:var(--a)}
-.landing .ct tbody td{color:var(--t2)}
-.landing .ct tbody td:nth-child(2){background:var(--gl)}
-.landing .ct tbody tr:last-child td{border-bottom:none}
-.landing .ct .y{color:var(--a);font-weight:600}
-.landing .ct .n{color:var(--t3)}
+.landing .comp-lbl{text-align:center;margin-bottom:24px;font-size:.85rem;color:var(--t3);font-weight:600}
+.landing .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:0 auto}
+.landing .comp-card{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:24px;position:relative}
+.landing .comp-card.comp-hl{border-color:var(--a);box-shadow:0 0 24px rgba(29,158,117,0.1)}
+.landing .comp-badge{display:inline-block;font-size:.6rem;font-weight:700;color:var(--a);background:var(--gl);padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.landing .comp-name{font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px}
+.landing .comp-price{font-size:.82rem;color:var(--t2);margin-bottom:16px;font-weight:500}
+.landing .comp-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.landing .comp-list li{font-size:.8rem;color:var(--t2);display:flex;align-items:center;gap:8px}
+.landing .comp-yes{color:#34d399;font-weight:700;font-size:.85rem;flex-shrink:0;width:16px;text-align:center}
+.landing .comp-no{color:#ef4444;font-weight:700;font-size:.85rem;flex-shrink:0;width:16px;text-align:center}
 
 /* ── PRICING ── */
 .landing .pricing{border-top:1px solid var(--brd)}
@@ -337,7 +338,7 @@
 @media(max-width:900px){
   .landing .how-f{flex-direction:column;gap:40px}
   .landing .how-l{position:static}
-  .landing .pain-g,.landing .feat-g,.landing .pr-grid,.landing .tg{grid-template-columns:1fr}
+  .landing .pain-g,.landing .feat-g,.landing .pr-grid,.landing .tg,.landing .comp-grid{grid-template-columns:1fr}
   .landing .ft.w{grid-column:span 1}
   .landing .demo-sb{display:none}
   .landing .demo-post-btn{display:none}

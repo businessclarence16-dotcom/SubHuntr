@@ -364,18 +364,33 @@ export function LandingPage() {
             </div>
           </div>
           <div className="comp-lbl rv">How we compare to alternatives</div>
-          <table className="ct rv">
-            <thead><tr><th></th><th>SubHuntr</th><th>Launch Club</th><th>Redreach</th></tr></thead>
-            <tbody>
-              <tr><td>Starting price</td><td className="y">$29/mo</td><td>$199-499/mo</td><td>$19/mo</td></tr>
-              <tr><td>Self-service</td><td className="y">✓</td><td className="n">✗</td><td className="y">✓</td></tr>
-              <tr><td>AI intent scoring</td><td className="y">✓</td><td className="n">✗</td><td className="n">✗</td></tr>
-              <tr><td>Competitor tracking</td><td className="y">✓</td><td className="y">✓</td><td className="n">✗</td></tr>
-              <tr><td>52+ templates</td><td className="y">✓</td><td className="n">✗</td><td className="n">✗</td></tr>
-              <tr><td>UTM tracking</td><td className="y">✓</td><td className="n">✗</td><td className="n">✗</td></tr>
-              <tr><td>Ethical / no fake votes</td><td className="y">✓</td><td className="n">✗</td><td className="y">✓</td></tr>
-            </tbody>
-          </table>
+          <div className="comp-grid rv">
+            {[
+              {
+                name: 'SubHuntr', price: '$29/mo', highlight: true, badge: 'You are here',
+                features: { 'Self-service': true, 'AI intent scoring': true, 'Competitor tracking': true, '52+ templates': true, 'UTM tracking': true, 'Ethical (no fake votes)': true },
+              },
+              {
+                name: 'Launch Club', price: '$199-499/mo', highlight: false,
+                features: { 'Self-service': false, 'AI intent scoring': false, 'Competitor tracking': true, '52+ templates': false, 'UTM tracking': false, 'Ethical (no fake votes)': false },
+              },
+              {
+                name: 'Redreach', price: '$19/mo', highlight: false,
+                features: { 'Self-service': true, 'AI intent scoring': false, 'Competitor tracking': false, '52+ templates': false, 'UTM tracking': false, 'Ethical (no fake votes)': true },
+              },
+            ].map((col) => (
+              <div key={col.name} className={`comp-card${col.highlight ? ' comp-hl' : ''}`}>
+                {col.badge && <span className="comp-badge">{col.badge}</span>}
+                <h4 className="comp-name">{col.name}</h4>
+                <div className="comp-price">{col.price}</div>
+                <ul className="comp-list">
+                  {Object.entries(col.features).map(([feat, has]) => (
+                    <li key={feat}><span className={has ? 'comp-yes' : 'comp-no'}>{has ? '✓' : '✗'}</span> {feat}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
