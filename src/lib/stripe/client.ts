@@ -22,12 +22,12 @@ export function getStripe(): Stripe {
 // Mapping plan + billing period → Stripe Price ID
 export function getPriceId(plan: 'starter' | 'growth' | 'agency', billing: 'monthly' | 'annual'): string {
   const priceIds: Record<string, string | undefined> = {
-    starter_monthly: process.env.StarterMonthly,
-    starter_annual: process.env.StarterAnnualy,
-    growth_monthly: process.env.GrowthMonthly,
-    growth_annual: process.env.GrowthAnnualy,
-    agency_monthly: process.env.AgencyMonthly,
-    agency_annual: process.env.AgencyAnnualy,
+    starter_monthly: process.env.starter_monthly,
+    starter_annual: process.env.starter_yearly,
+    growth_monthly: process.env.growth_monthly,
+    growth_annual: process.env.growth_yearly,
+    agency_monthly: process.env.agency_monthly,
+    agency_annual: process.env.agency_yearly,
   }
 
   const key = `${plan}_${billing}`
@@ -44,12 +44,12 @@ export function getPlanFromPriceId(priceId: string): 'starter' | 'growth' | 'age
   const mapping: Record<string, 'starter' | 'growth' | 'agency'> = {}
 
   const envPairs: Array<[string, 'starter' | 'growth' | 'agency']> = [
-    ['StarterMonthly', 'starter'],
-    ['StarterAnnualy', 'starter'],
-    ['GrowthMonthly', 'growth'],
-    ['GrowthAnnualy', 'growth'],
-    ['AgencyMonthly', 'agency'],
-    ['AgencyAnnualy', 'agency'],
+    ['starter_monthly', 'starter'],
+    ['starter_yearly', 'starter'],
+    ['growth_monthly', 'growth'],
+    ['growth_yearly', 'growth'],
+    ['agency_monthly', 'agency'],
+    ['agency_yearly', 'agency'],
   ]
 
   for (const [envVar, plan] of envPairs) {
