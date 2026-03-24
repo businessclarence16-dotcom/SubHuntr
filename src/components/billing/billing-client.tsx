@@ -27,8 +27,8 @@ const planDefs = [
     id: 'starter' as const,
     name: 'Starter',
     monthlyPrice: 29,
-    annualPricePerMonth: 24.17,
-    annualTotal: 290,
+    annualPricePerMonth: 24,
+    annualTotal: 288,
     subtitle: 'For individuals getting started',
     features: [
       { text: '1 project', on: true },
@@ -44,8 +44,8 @@ const planDefs = [
     id: 'growth' as const,
     name: 'Growth',
     monthlyPrice: 79,
-    annualPricePerMonth: 65.83,
-    annualTotal: 790,
+    annualPricePerMonth: 65,
+    annualTotal: 780,
     subtitle: 'For scaling your Reddit acquisition',
     popular: true,
     features: [
@@ -62,8 +62,8 @@ const planDefs = [
     id: 'agency' as const,
     name: 'Agency',
     monthlyPrice: 199,
-    annualPricePerMonth: 165.83,
-    annualTotal: 1990,
+    annualPricePerMonth: 165,
+    annualTotal: 1980,
     subtitle: 'For agencies and power users',
     features: [
       { text: '10 projects', on: true },

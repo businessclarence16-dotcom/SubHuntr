@@ -18,8 +18,8 @@ const DEMO_POSTS = [
 ]
 
 const MONTHLY_PRICES = [29, 79, 199]
-const ANNUAL_PRICES = [24.17, 65.83, 165.83]
-const ANNUAL_TOTALS = ['$290', '$790', '$1,990']
+const ANNUAL_PRICES = [24, 65, 165]
+const ANNUAL_TOTALS = ['$288', '$780', '$1,980']
 
 function CheckIcon() {
   return (
