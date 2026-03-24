@@ -1,4 +1,4 @@
-// API Route to change plan on an existing Stripe subscription
+// API Route to change plan — cancels current subscription and creates new Stripe Checkout
 // POST /api/stripe/change-plan { plan: 'starter' | 'growth' | 'agency', billing: 'monthly' | 'annual' }
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -23,10 +23,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid billing period' }, { status: 400 })
   }
 
-  // Get user profile with subscription ID
   const { data: profile } = await supabase
     .from('users')
-    .select('stripe_subscription_id')
+    .select('stripe_customer_id, stripe_subscription_id')
     .eq('id', user.id)
     .single()
 
@@ -36,39 +35,43 @@ export async function POST(request: NextRequest) {
 
   console.log(`[ChangePlan] User ${user.id} changing to ${plan} (${billing})`)
 
-  const stripe = getStripe()
+  try {
+    const stripe = getStripe()
 
-  // Retrieve current subscription to get the item ID
-  const subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id)
-  const itemId = subscription.items.data[0]?.id
+    // Cancel the current subscription immediately
+    await stripe.subscriptions.cancel(profile.stripe_subscription_id)
+    console.log(`[ChangePlan] Canceled subscription ${profile.stripe_subscription_id}`)
 
-  if (!itemId) {
-    console.error(`[ChangePlan] No subscription item found for ${profile.stripe_subscription_id}`)
-    return NextResponse.json({ error: 'Subscription item not found' }, { status: 500 })
+    // Clear subscription in DB (webhook will also handle this, but clear it now for the checkout guard)
+    await supabase
+      .from('users')
+      .update({ stripe_subscription_id: null, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+
+    // Create a new Stripe Checkout session for the new plan — NO trial (not first subscription)
+    const origin = request.nextUrl.origin
+    const priceId = getPriceId(plan, billing)
+    console.log(`[ChangePlan] Creating checkout for price ${priceId}`)
+
+    const session = await stripe.checkout.sessions.create({
+      customer: profile.stripe_customer_id!,
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/billing?success=true`,
+      cancel_url: `${origin}/billing`,
+      allow_promotion_codes: true,
+      metadata: { userId: user.id, plan, billing },
+      subscription_data: {
+        metadata: { userId: user.id, plan },
+        // No trial_period_days — this is a plan change, not first subscription
+      },
+    })
+
+    console.log(`[ChangePlan] Checkout session created: ${session.id}`)
+    return NextResponse.json({ url: session.url })
+  } catch (err) {
+    console.error(`[ChangePlan] Error:`, err)
+    const message = err instanceof Error ? err.message : 'Failed to change plan'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  const newPriceId = getPriceId(plan, billing)
-  console.log(`[ChangePlan] Updating item ${itemId} to price ${newPriceId}`)
-
-  // Update the subscription with the new price — end any active trial immediately
-  await stripe.subscriptions.update(profile.stripe_subscription_id, {
-    items: [{ id: itemId, price: newPriceId }],
-    metadata: { userId: user.id, plan },
-    proration_behavior: 'create_prorations',
-    trial_end: 'now',
-  })
-
-  // Update plan in Supabase immediately
-  const { error } = await supabase
-    .from('users')
-    .update({ plan, updated_at: new Date().toISOString() })
-    .eq('id', user.id)
-
-  if (error) {
-    console.error(`[ChangePlan] Failed to update Supabase:`, error)
-    return NextResponse.json({ error: 'Plan changed in Stripe but failed to update database' }, { status: 500 })
-  }
-
-  console.log(`[ChangePlan] User ${user.id} successfully changed to ${plan}`)
-  return NextResponse.json({ success: true })
 }

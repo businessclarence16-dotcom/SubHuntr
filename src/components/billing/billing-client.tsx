@@ -129,35 +129,20 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
     }
   }, [searchParams])
 
-  // Decide: new checkout or change existing subscription
+  // Both new checkout and plan change redirect to Stripe Checkout
   async function handlePlanAction(targetPlan: 'starter' | 'growth' | 'agency') {
     setLoading(targetPlan)
     try {
-      if (hasSubscription) {
-        // Change existing subscription
-        const res = await fetch('/api/stripe/change-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
-        })
-        const data = await res.json()
-        if (data.success) {
-          router.refresh()
-          setShowSuccess(true)
-          setTimeout(() => setShowSuccess(false), 5000)
-        }
-      } else {
-        // New checkout
-        const res = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
-        })
-        const data = await res.json()
-        if (data.url) {
-          window.location.href = data.url
-          return
-        }
+      const endpoint = hasSubscription ? '/api/stripe/change-plan' : '/api/stripe/checkout'
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+        return
       }
     } catch {
       // ignore
