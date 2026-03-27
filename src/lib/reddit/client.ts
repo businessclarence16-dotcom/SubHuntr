@@ -97,6 +97,16 @@ const STRONG_INTENT_PHRASES = [
   'any good tools', 'any good software', 'any good apps',
 ]
 
+// Flexible strong intent: title must contain a starter AND an ender (not necessarily adjacent)
+const STRONG_STARTERS = [
+  'looking for', 'need a', 'need an', 'searching for', 'trying to find',
+  'want a', 'want an', 'in need of', 'hunting for',
+]
+const STRONG_ENDERS = [
+  'tool', 'software', 'platform', 'solution', 'app', 'service',
+  'recommendation', 'recommendations', 'suggestion', 'suggestions', 'alternative', 'alternatives',
+]
+
 const MEDIUM_INTENT_PHRASES = [
   'best tool', 'best software', 'best platform', 'best app', 'best service',
   'best way to', 'best option', 'best solution',
@@ -116,6 +126,15 @@ const MEDIUM_INTENT_PHRASES = [
   'how to automate', 'how to streamline',
 ]
 
+// "best [X]" where X is a category word → medium intent minimum
+const BEST_CATEGORY_WORDS = [
+  'crm', 'cms', 'erp', 'saas', 'tool', 'app', 'software', 'platform', 'service',
+  'solution', 'plugin', 'extension', 'framework', 'library', 'api', 'integration',
+  'automation', 'dashboard', 'analytics', 'monitoring', 'deployment', 'hosting',
+  'email', 'scheduling', 'invoicing', 'accounting', 'project management',
+  'time tracking', 'customer support', 'helpdesk', 'live chat',
+]
+
 const WEAK_INTENT_PHRASES = [
   ' vs ', 'versus', 'compared to', 'comparison',
   'difference between',
@@ -124,12 +143,19 @@ const WEAK_INTENT_PHRASES = [
   'pros and cons', 'advantages of',
 ]
 
+const HIGH_VALUE_SUBREDDITS = new Set([
+  'saas', 'entrepreneur', 'startups', 'smallbusiness', 'indiehackers',
+  'webdev', 'marketing', 'growthhacking', 'growmybusiness', 'digitalnomad',
+  'freelance', 'productivity', 'sideproject', 'advancedentrepreneur',
+])
+
 function calculateRelevanceScore(
   title: string,
   body: string | null,
   keyword: string,
   createdUtc: number,
   numComments: number,
+  subreddit?: string,
 ): number {
   const titleLower = title.toLowerCase()
   const bodyLower = (body || '').toLowerCase()
@@ -146,13 +172,34 @@ function calculateRelevanceScore(
   let score = 0
 
   // 1. Buying intent in TITLE (0-5 points) — most important signal
+  // First try exact phrase match
+  let titleIntentScore = 0
   if (STRONG_INTENT_PHRASES.some((p) => titleLower.includes(p))) {
-    score += 5
+    titleIntentScore = 5
   } else if (MEDIUM_INTENT_PHRASES.some((p) => titleLower.includes(p))) {
-    score += 3
+    titleIntentScore = 3
   } else if (WEAK_INTENT_PHRASES.some((p) => titleLower.includes(p))) {
-    score += 2
+    titleIntentScore = 2
   }
+
+  // Flexible strong intent: starter + ender anywhere in title (handles "looking for CRM/tool recommendations")
+  if (titleIntentScore < 5) {
+    const hasStarter = STRONG_STARTERS.some((s) => titleLower.includes(s))
+    const hasEnder = STRONG_ENDERS.some((e) => titleLower.includes(e))
+    if (hasStarter && hasEnder) {
+      titleIntentScore = Math.max(titleIntentScore, 5)
+    }
+  }
+
+  // "best" + category word → at least medium intent
+  if (titleIntentScore < 3 && titleLower.includes('best')) {
+    const hasCategoryWord = BEST_CATEGORY_WORDS.some((w) => titleLower.includes(w))
+    if (hasCategoryWord) {
+      titleIntentScore = Math.max(titleIntentScore, 3)
+    }
+  }
+
+  score += titleIntentScore
 
   // 2. Buying intent in BODY (+0-2 points)
   if (bodyLower.length > 0) {
@@ -173,16 +220,29 @@ function calculateRelevanceScore(
     score += 1
   }
 
-  // 5. Freshness — light bonus (+0-1 point), NOT the main factor
+  // 5. Freshness — compensates for missing RSS body (+0-2 points)
   const ageInHours = (Date.now() / 1000 - createdUtc) / 3600
-  if (ageInHours < 2) {
-    score += 1
+  if (ageInHours < 1) {
+    score += 2
+  } else if (ageInHours < 3) {
+    score += 1.5
   } else if (ageInHours < 6) {
+    score += 1
+  } else if (ageInHours < 12) {
     score += 0.5
   }
 
-  // 6. Engagement — light bonus (+0-0.5 points)
-  if (numComments >= 10) {
+  // 6. Engagement — signals real interest (+0-1.5 points)
+  if (numComments >= 20) {
+    score += 1.5
+  } else if (numComments >= 10) {
+    score += 1
+  } else if (numComments >= 5) {
+    score += 0.5
+  }
+
+  // 7. High-value subreddit bonus (+0.5 points)
+  if (subreddit && HIGH_VALUE_SUBREDDITS.has(subreddit.toLowerCase())) {
     score += 0.5
   }
 
@@ -293,7 +353,7 @@ function rssEntriesToPosts(
     const subreddit = extractSubredditFromUrl(url) || subredditName
 
     // RSS doesn't provide score/comments, so default to 0
-    const relevance = calculateRelevanceScore(title, body, keyword, createdUtc, 0)
+    const relevance = calculateRelevanceScore(title, body, keyword, createdUtc, 0, subreddit)
 
     posts.push({
       reddit_id: redditId,
@@ -468,6 +528,7 @@ async function searchSubredditSnoowrap(
       keyword,
       post.created_utc,
       post.num_comments,
+      post.subreddit.display_name,
     )
 
     return {
