@@ -101,10 +101,12 @@ const STRONG_INTENT_PHRASES = [
 const STRONG_STARTERS = [
   'looking for', 'need a', 'need an', 'searching for', 'trying to find',
   'want a', 'want an', 'in need of', 'hunting for',
+  'what', 'which', 'should i', 'should we',
 ]
 const STRONG_ENDERS = [
   'tool', 'software', 'platform', 'solution', 'app', 'service',
   'recommendation', 'recommendations', 'suggestion', 'suggestions', 'alternative', 'alternatives',
+  'saas',
 ]
 
 const MEDIUM_INTENT_PHRASES = [
@@ -114,6 +116,9 @@ const MEDIUM_INTENT_PHRASES = [
   'anyone using', 'anyone tried', 'anyone have experience',
   'which tool', 'which software', 'which platform',
   'should i use', 'should i switch', 'should i try',
+  'should we use', 'should we switch', 'should we try',
+  'what software', 'what tool', 'what app', 'what platform',
+  'what service', 'what solution',
   'what is the best', "what's the best", 'whats the best',
   'worth it', 'worth trying', 'worth switching',
   'how do you handle', 'how do you manage',
@@ -290,8 +295,13 @@ function parseJsonResponse(
     .filter((child) => child.data.created_utc > oneDayAgo)
     .map((child) => {
       const post = child.data
-      const body = post.selftext || null
+      // selftext is empty string for link posts, non-empty for text posts
+      const body = post.selftext && post.selftext.length > 0 ? post.selftext : null
       const subreddit = post.subreddit || subredditName
+
+      if (body) {
+        console.log(`[Reddit] [JSON] Post "${post.title.slice(0, 50)}" has body (${body.length} chars)`)
+      }
 
       const relevance = calculateRelevanceScore(
         post.title,
