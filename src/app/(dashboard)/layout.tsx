@@ -10,14 +10,14 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen bg-[#09090b]">
+    <div className="flex max-w-full min-h-screen overflow-hidden bg-[#09090b]">
       {/* Sidebar — visible uniquement sur desktop */}
-      <div className="hidden md:block">
+      <div className="hidden shrink-0 md:block">
         <Sidebar />
       </div>
 
-      {/* Zone principale : header + contenu — min-w-0 prevents flex overflow */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* Zone principale : header + contenu */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="sticky top-0 z-40 flex h-14 items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(9,9,11,0.6)] px-4 backdrop-blur-xl md:px-6">
           {/* Menu hamburger — visible uniquement sur mobile */}
           <MobileNav />
@@ -27,7 +27,7 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
+        <main className="min-w-0 max-w-full flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
       </div>
     </div>
   )

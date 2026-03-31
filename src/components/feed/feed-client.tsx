@@ -204,7 +204,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-full space-y-6 overflow-hidden">
       {/* Welcome banner for first-time users */}
       {showWelcome && (
         <div className="animate-fade-in-up flex items-start justify-between rounded-[12px] border border-[rgba(29,158,117,0.2)] bg-[rgba(29,158,117,0.08)] px-5 py-4">
@@ -417,7 +417,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
             return (
               <div
                 key={post.id}
-                className="animate-fade-in-up group flex items-center gap-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
+                className="animate-fade-in-up group flex max-w-full items-center gap-3 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
                 style={{
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   animationDelay: `${Math.min(i * 0.04, 0.4)}s`,
