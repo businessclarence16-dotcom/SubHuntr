@@ -16,18 +16,18 @@ export default function DashboardLayout({
         <Sidebar />
       </div>
 
-      {/* Zone principale : header + contenu */}
-      <div className="flex flex-1 flex-col">
+      {/* Zone principale : header + contenu — min-w-0 prevents flex overflow */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <div className="sticky top-0 z-40 flex h-14 items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(9,9,11,0.6)] px-4 backdrop-blur-xl md:px-6">
           {/* Menu hamburger — visible uniquement sur mobile */}
           <MobileNav />
           {/* Le header async avec user info est côté droit */}
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <Header />
           </div>
         </div>
 
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-6">{children}</main>
       </div>
     </div>
   )

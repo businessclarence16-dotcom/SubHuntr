@@ -291,7 +291,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       {/* Quick filters + dropdowns */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Quick filter pills */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {quickFilters.map((f) => (
             <button
               key={f.key}
@@ -438,7 +438,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                 </div>
 
                 {/* Content — matches .demo-post-b */}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <p
                     className="truncate text-[0.82rem] font-semibold text-[#fafafa]"
                     title={post.title}
