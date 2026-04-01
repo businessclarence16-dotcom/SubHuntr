@@ -438,9 +438,9 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                 </div>
 
                 {/* Content — matches .demo-post-b */}
-                <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="w-0 flex-1">
                   <p
-                    className="truncate text-[0.82rem] font-semibold text-[#fafafa]"
+                    className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.82rem] font-semibold text-[#fafafa]"
                     title={post.title}
                   >
                     {post.title}
