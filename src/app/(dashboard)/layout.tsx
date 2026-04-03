@@ -18,7 +18,7 @@ export default function DashboardLayout({
 
       {/* Zone principale : header + contenu */}
       <div className="flex flex-col" style={{ overflow: 'hidden', minWidth: 0, flex: 1 }}>
-        <div className="sticky top-0 z-40 flex h-14 items-center border-b border-[rgba(255,255,255,0.06)] bg-[rgba(9,9,11,0.6)] px-4 backdrop-blur-xl md:px-6">
+        <div className="flex h-14 items-center border-b border-[rgba(255,255,255,0.06)] px-3 backdrop-blur-xl md:px-6" style={{ position: 'sticky', top: 0, zIndex: 40, backgroundColor: '#09090b' }}>
           {/* Menu hamburger — visible uniquement sur mobile */}
           <MobileNav />
           {/* Le header async avec user info est côté droit */}

@@ -41,16 +41,16 @@ export async function Header() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-end px-6">
+    <header className="flex h-14 items-center justify-end px-2 md:px-6">
       {user && <PostHogIdentify userId={user.id} email={email} plan={plan} />}
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.04)]">
           <Avatar className="h-8 w-8 border border-[rgba(255,255,255,0.06)]">
             <AvatarFallback className="bg-[#18181c] text-xs text-[#a1a1aa]">{initials}</AvatarFallback>
           </Avatar>
-          <div className="hidden text-left sm:block">
-            <p className="text-sm font-medium leading-none text-[#fafafa]">{fullName || email}</p>
-            <p className="text-xs text-[#52525b]">{email}</p>
+          <div className="hidden text-left sm:block" style={{ maxWidth: 150, overflow: 'hidden' }}>
+            <p className="text-sm font-medium leading-none text-[#fafafa]" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName || email}</p>
+            <p className="text-xs text-[#52525b]" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
           </div>
           <span className={`ml-1 rounded-full px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide ${planColors[plan] ?? planColors.starter}`}>
             {plan}
