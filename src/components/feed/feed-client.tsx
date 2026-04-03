@@ -204,7 +204,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   ]
 
   return (
-    <div className="max-w-full space-y-6 overflow-hidden">
+    <div className="space-y-6" style={{ overflow: 'hidden', maxWidth: '100%' }}>
       {/* Welcome banner for first-time users */}
       {showWelcome && (
         <div className="animate-fade-in-up flex items-start justify-between rounded-[12px] border border-[rgba(29,158,117,0.2)] bg-[rgba(29,158,117,0.08)] px-5 py-4">
@@ -227,7 +227,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       )}
 
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%' }}>
         <div>
           <h1
             className="text-[clamp(1.5rem,3vw,2rem)] font-[800] text-[#fafafa]"
@@ -289,7 +289,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       )}
 
       {/* Quick filters + dropdowns */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%', flexWrap: 'wrap' }}>
         {/* Quick filter pills */}
         <div className="flex flex-wrap gap-1">
           {quickFilters.map((f) => (
@@ -417,30 +417,34 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
             return (
               <div
                 key={post.id}
-                className="animate-fade-in-up group flex max-w-full items-center gap-3 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
+                className="animate-fade-in-up group flex items-center gap-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
                 style={{
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   animationDelay: `${Math.min(i * 0.04, 0.4)}s`,
                   opacity: isReplied ? 0.7 : isSkipped ? 0.5 : 1,
+                  overflow: 'hidden',
+                  maxWidth: '100%',
                 }}
               >
                 {/* Score badge — matches .demo-sc */}
                 <div
-                  className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[8px] font-mono text-[0.8rem] font-bold ${
+                  className={`flex h-[34px] w-[34px] items-center justify-center rounded-[8px] font-mono text-[0.8rem] font-bold ${
                     score >= 8
                       ? 'bg-[rgba(29,158,117,0.15)] text-[#34d399]'
                       : score >= 5
                         ? 'bg-[rgba(245,158,11,0.1)] text-[#f59e0b]'
                         : 'bg-[rgba(255,255,255,0.05)] text-[#52525b]'
                   }`}
+                  style={{ flexShrink: 0 }}
                 >
                   {score || '—'}
                 </div>
 
                 {/* Content — matches .demo-post-b */}
-                <div className="w-0 flex-1">
+                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <p
-                    className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.82rem] font-semibold text-[#fafafa]"
+                    className="text-[0.82rem] font-semibold text-[#fafafa]"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     title={post.title}
                   >
                     {post.title}
@@ -470,7 +474,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                 </div>
 
                 {/* Actions */}
-                <div className="flex shrink-0 items-center gap-1.5">
+                <div className="flex items-center gap-1.5" style={{ flexShrink: 0 }}>
                   <a
                     href={post.url}
                     target="_blank"
