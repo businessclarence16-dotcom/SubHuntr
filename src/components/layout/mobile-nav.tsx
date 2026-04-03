@@ -20,14 +20,29 @@ import {
   CreditCard,
 } from 'lucide-react'
 
-const navItems = [
-  { href: '/feed', label: 'Feed', icon: Rss },
-  { href: '/keywords', label: 'Keywords', icon: Search },
-  { href: '/subreddits', label: 'Subreddits', icon: MessageSquare },
-  { href: '/templates', label: 'Templates', icon: FileText },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/settings', label: 'Settings', icon: Settings },
-  { href: '/billing', label: 'Billing', icon: CreditCard },
+const navSections = [
+  {
+    label: 'Monitor',
+    items: [
+      { href: '/feed', label: 'Feed', icon: Rss },
+      { href: '/keywords', label: 'Keywords', icon: Search },
+      { href: '/subreddits', label: 'Subreddits', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'Tools',
+    items: [
+      { href: '/templates', label: 'Templates', icon: FileText },
+      { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { href: '/settings', label: 'Settings', icon: Settings },
+      { href: '/billing', label: 'Billing', icon: CreditCard },
+    ],
+  },
 ]
 
 export function MobileNav() {
@@ -52,26 +67,33 @@ export function MobileNav() {
           SubHuntr
         </Link>
 
-        <nav className="flex flex-1 flex-col gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                  isActive
-                    ? 'bg-[rgba(29,158,117,0.15)] font-medium text-[#1D9E75]'
-                    : 'text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#fafafa]'
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            )
-          })}
+        <nav className="flex flex-1 flex-col">
+          {navSections.map((section) => (
+            <div key={section.label} className="mb-2">
+              <div className="px-3 pb-1 pt-4 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-[#52525b]">
+                {section.label}
+              </div>
+              {section.items.map((item) => {
+                const isActive = pathname.startsWith(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                      isActive
+                        ? 'bg-[rgba(29,158,117,0.15)] font-medium text-[#1D9E75]'
+                        : 'text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#fafafa]'
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="mt-4">
