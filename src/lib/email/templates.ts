@@ -187,3 +187,60 @@ export function churnDay14Email(name: string): { subject: string; html: string }
     ),
   }
 }
+
+// ========== AUTO-SCAN DIGEST ==========
+
+interface DigestPost {
+  title: string
+  url: string
+  subreddit: string
+  matched_keyword: string
+  relevance_score: number
+}
+
+function scoreBadge(score: number): string {
+  const bg = score >= 8 ? '#dcfce7' : score >= 5 ? '#fef9c3' : '#f4f4f5'
+  const color = score >= 8 ? '#166534' : score >= 5 ? '#854d0e' : '#52525b'
+  return `<span style="display:inline-block;min-width:24px;text-align:center;padding:2px 6px;border-radius:6px;font-size:12px;font-weight:700;background:${bg};color:${color}">${score}</span>`
+}
+
+/** Auto-scan digest email — sent when high-intent posts are found */
+export function digestEmail(
+  posts: DigestPost[],
+  minScore: number,
+): { subject: string; html: string } {
+  const postsHtml = posts.slice(0, 10).map((post) =>
+    `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid #f4f4f5">
+        <table cellpadding="0" cellspacing="0" width="100%"><tr>
+          <td style="width:36px;vertical-align:top;padding-right:10px">${scoreBadge(post.relevance_score)}</td>
+          <td>
+            <a href="${post.url}" style="color:#09090b;font-size:14px;font-weight:600;text-decoration:none;line-height:1.4">${post.title}</a>
+            <div style="margin-top:3px;font-size:12px;color:#a1a1aa">
+              r/${post.subreddit} &middot; <span style="background:#f4f4f5;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:11px">${post.matched_keyword}</span>
+            </div>
+          </td>
+        </tr></table>
+      </td>
+    </tr>`
+  ).join('')
+
+  const moreNote = posts.length > 10
+    ? p(`<em>...and ${posts.length - 10} more. View all in your dashboard.</em>`)
+    : ''
+
+  return {
+    subject: `\uD83C\uDFAF ${posts.length} new high-intent lead${posts.length !== 1 ? 's' : ''} found on Reddit`,
+    html: layout(
+      h1(`${posts.length} new lead${posts.length !== 1 ? 's' : ''} found`) +
+      p(`Your auto-scan found <strong>${posts.length} post${posts.length !== 1 ? 's' : ''}</strong> matching your criteria (score \u2265 ${minScore}).`) +
+      `<table cellpadding="0" cellspacing="0" width="100%" style="margin:16px 0">${postsHtml}</table>` +
+      moreNote +
+      button('View all leads', `${SITE_URL}/feed?filter=high-intent`) +
+      `<p style="margin:20px 0 0;font-size:12px;color:#a1a1aa">
+        You're receiving this because you enabled lead alerts.
+        <a href="${SITE_URL}/settings" style="color:#a1a1aa;text-decoration:underline">Manage preferences</a>
+      </p>`
+    ),
+  }
+}

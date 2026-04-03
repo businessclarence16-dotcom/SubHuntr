@@ -20,6 +20,13 @@ interface SettingsClientProps {
     url: string
     description: string
   } | null
+  notifications?: {
+    autoScanEnabled: boolean
+    autoScanIntervalHours: number
+    notifyMinScore: number
+    hasKeywords: boolean
+    hasSubreddits: boolean
+  }
 }
 
 /* ── shared style constants (landing page match) ── */
@@ -74,7 +81,24 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
   e.currentTarget.style.boxShadow = 'none'
 }
 
-export function SettingsClient({ user, project }: SettingsClientProps) {
+// Intervals available per plan
+const AUTO_SCAN_INTERVALS: Record<string, number[]> = {
+  starter: [12, 24],
+  growth: [4, 6, 12, 24],
+  agency: [2, 4, 6, 12, 24],
+  enterprise: [1, 2, 4, 6, 12, 24],
+}
+
+const INTERVAL_LABELS: Record<number, string> = {
+  1: 'Every 1h', 2: 'Every 2h', 4: 'Every 4h', 6: 'Every 6h', 12: 'Every 12h', 24: 'Every 24h',
+}
+
+// Which plan unlocks each interval
+const INTERVAL_PLAN: Record<number, string> = {
+  1: 'Enterprise', 2: 'Agency', 4: 'Growth', 6: 'Growth', 12: 'Starter', 24: 'Starter',
+}
+
+export function SettingsClient({ user, project, notifications }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('profile')
 
@@ -99,9 +123,12 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
   const [projectSaved, setProjectSaved] = useState(false)
 
   // Notifications
-  const [emailNewPosts, setEmailNewPosts] = useState(true)
-  const [emailHighIntent, setEmailHighIntent] = useState(true)
-  const [emailWeeklyDigest, setEmailWeeklyDigest] = useState(false)
+  const [autoScanEnabled, setAutoScanEnabled] = useState(notifications?.autoScanEnabled ?? false)
+  const [autoScanInterval, setAutoScanInterval] = useState(notifications?.autoScanIntervalHours ?? 12)
+  const [notifyMinScore, setNotifyMinScore] = useState(notifications?.notifyMinScore ?? 7)
+  const [savingNotifications, setSavingNotifications] = useState(false)
+  const [notificationsSaved, setNotificationsSaved] = useState(false)
+  const canEnableAutoScan = notifications?.hasKeywords && notifications?.hasSubreddits
 
   // Account deletion
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -196,6 +223,28 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
       }
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function saveNotifications() {
+    setSavingNotifications(true)
+    setNotificationsSaved(false)
+    try {
+      const res = await fetch('/api/settings/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auto_scan_enabled: autoScanEnabled,
+          auto_scan_interval_hours: autoScanInterval,
+          notify_min_score: notifyMinScore,
+        }),
+      })
+      if (res.ok) {
+        setNotificationsSaved(true)
+        setTimeout(() => setNotificationsSaved(false), 3000)
+      }
+    } finally {
+      setSavingNotifications(false)
     }
   }
 
@@ -561,41 +610,146 @@ export function SettingsClient({ user, project }: SettingsClientProps) {
       {activeTab === 'notifications' && (
         <div className="animate-fade-in-up" style={{ ...cardStyle, padding: '28px 32px' }}>
           <h2 style={{ fontWeight: 700, fontSize: '1rem', color: '#fafafa', marginBottom: 4 }}>
-            Email Notifications
+            Lead Alerts
           </h2>
           <p style={{ color: '#52525b', fontSize: '.82rem', marginBottom: 24 }}>
-            Choose which notifications you want to receive
+            Get an email when new high-intent posts are found
           </p>
 
+          {!canEnableAutoScan && (
+            <div style={{
+              background: 'rgba(245,158,11,0.08)',
+              border: '1px solid rgba(245,158,11,0.2)',
+              borderRadius: 10,
+              padding: '12px 16px',
+              marginBottom: 20,
+              fontSize: '.82rem',
+              color: '#f59e0b',
+            }}>
+              Add keywords and subreddits first to enable auto-scan.
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Toggle */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{ fontSize: '.88rem', fontWeight: 600, color: '#fafafa', marginBottom: 2 }}>New posts found</p>
-                <p style={{ fontSize: '.78rem', color: '#52525b' }}>Get notified when new matching posts are found</p>
+                <p style={{ fontSize: '.88rem', fontWeight: 600, color: '#fafafa', marginBottom: 2 }}>Enable lead alerts</p>
+                <p style={{ fontSize: '.78rem', color: '#52525b' }}>Auto-scan Reddit and email you when leads are found</p>
               </div>
-              <Toggle on={emailNewPosts} onChange={setEmailNewPosts} />
+              <Toggle
+                on={autoScanEnabled}
+                onChange={(v) => { if (canEnableAutoScan) setAutoScanEnabled(v) }}
+              />
             </div>
+
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ fontSize: '.88rem', fontWeight: 600, color: '#fafafa', marginBottom: 2 }}>High-intent alerts</p>
-                <p style={{ fontSize: '.78rem', color: '#52525b' }}>Immediate alert for posts with score 7+</p>
+
+            {/* Scan frequency */}
+            <div>
+              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 8 }}>
+                Scan frequency
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {[1, 2, 4, 6, 12, 24].map((hours) => {
+                  const allowed = (AUTO_SCAN_INTERVALS[user.plan] ?? [12, 24]).includes(hours)
+                  const active = autoScanInterval === hours
+                  return (
+                    <button
+                      key={hours}
+                      onClick={() => {
+                        if (allowed) setAutoScanInterval(hours)
+                      }}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: 8,
+                        fontSize: '.78rem',
+                        fontWeight: active ? 600 : 500,
+                        background: active ? 'rgba(29,158,117,0.15)' : 'rgba(255,255,255,0.04)',
+                        color: active ? '#1D9E75' : allowed ? '#a1a1aa' : '#52525b',
+                        border: active ? '1px solid rgba(29,158,117,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                        cursor: allowed ? 'pointer' : 'not-allowed',
+                        opacity: allowed ? 1 : 0.5,
+                        transition: 'all .15s',
+                      }}
+                    >
+                      {INTERVAL_LABELS[hours]}
+                      {!allowed && ` \uD83D\uDD12`}
+                    </button>
+                  )
+                })}
               </div>
-              <Toggle on={emailHighIntent} onChange={setEmailHighIntent} />
+              {autoScanInterval <= 6 && !(AUTO_SCAN_INTERVALS[user.plan] ?? []).includes(autoScanInterval) && (
+                <p style={{ marginTop: 6, fontSize: '.72rem', color: '#f59e0b' }}>
+                  Upgrade to {INTERVAL_PLAN[autoScanInterval]} to unlock this frequency.
+                </p>
+              )}
             </div>
+
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ fontSize: '.88rem', fontWeight: 600, color: '#fafafa', marginBottom: 2 }}>Weekly digest</p>
-                <p style={{ fontSize: '.78rem', color: '#52525b' }}>Summary of the week&apos;s activity every Monday</p>
+
+            {/* Minimum score */}
+            <div>
+              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 8 }}>
+                Minimum score
+              </label>
+              <p style={{ fontSize: '.72rem', color: '#52525b', marginBottom: 8 }}>
+                Only notify me for posts with this score or higher
+              </p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[5, 6, 7, 8, 9].map((s) => {
+                  const active = notifyMinScore === s
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => setNotifyMinScore(s)}
+                      style={{
+                        width: 40,
+                        height: 36,
+                        borderRadius: 8,
+                        fontSize: '.82rem',
+                        fontWeight: 700,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        background: active ? 'rgba(29,158,117,0.15)' : 'rgba(255,255,255,0.04)',
+                        color: active ? '#1D9E75' : '#a1a1aa',
+                        border: active ? '1px solid rgba(29,158,117,0.3)' : '1px solid rgba(255,255,255,0.06)',
+                        cursor: 'pointer',
+                        transition: 'all .15s',
+                      }}
+                    >
+                      {s}+
+                    </button>
+                  )
+                })}
               </div>
-              <Toggle on={emailWeeklyDigest} onChange={setEmailWeeklyDigest} />
             </div>
           </div>
 
-          <p style={{ marginTop: 20, fontSize: '.72rem', color: '#52525b' }}>
-            Notification preferences will be available once email integration is set up.
-          </p>
+          {/* Save button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 24 }}>
+            <button
+              style={{
+                ...btnPrimary,
+                opacity: savingNotifications ? 0.5 : 1,
+                pointerEvents: savingNotifications ? 'none' : 'auto',
+              }}
+              onClick={saveNotifications}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#17805f'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#1D9E75'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+            >
+              {savingNotifications && <Loader2 size={15} className="animate-spin" />}
+              Save preferences
+            </button>
+            {notificationsSaved && (
+              <span style={{ fontSize: '.82rem', color: '#1D9E75', fontWeight: 600 }}>Notification preferences saved!</span>
+            )}
+          </div>
         </div>
       )}
 

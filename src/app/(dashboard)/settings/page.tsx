@@ -27,6 +27,18 @@ export default async function SettingsPage() {
     .limit(1)
     .single()
 
+  // Check if project has keywords and subreddits
+  let hasKeywords = false
+  let hasSubreddits = false
+  if (project) {
+    const [{ count: kwCount }, { count: subCount }] = await Promise.all([
+      supabase.from('keywords').select('id', { count: 'exact', head: true }).eq('project_id', project.id).eq('is_active', true),
+      supabase.from('subreddits').select('id', { count: 'exact', head: true }).eq('project_id', project.id).eq('is_active', true),
+    ])
+    hasKeywords = (kwCount ?? 0) > 0
+    hasSubreddits = (subCount ?? 0) > 0
+  }
+
   return (
     <SettingsClient
       user={{
@@ -41,6 +53,13 @@ export default async function SettingsPage() {
         url: project.url ?? '',
         description: project.description ?? '',
       } : null}
+      notifications={{
+        autoScanEnabled: project?.auto_scan_enabled ?? false,
+        autoScanIntervalHours: project?.auto_scan_interval_hours ?? 12,
+        notifyMinScore: project?.notify_min_score ?? 7,
+        hasKeywords,
+        hasSubreddits,
+      }}
     />
   )
 }
