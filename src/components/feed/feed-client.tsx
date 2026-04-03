@@ -277,8 +277,8 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         </div>
       )}
 
-      {/* Sticky header zone */}
-      <div style={{ position: 'sticky', top: 56, zIndex: 10, backgroundColor: '#09090b', paddingBottom: 16, marginBottom: -16 }}>
+      {/* Sticky header zone — sticky on md+, relative on mobile */}
+      <div className="feed-sticky-header" style={{ zIndex: 10, backgroundColor: '#09090b', paddingBottom: 16 }}>
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%' }}>

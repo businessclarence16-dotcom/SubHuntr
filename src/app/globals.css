@@ -14,6 +14,18 @@ html, body {
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 /* ===== FIN SCROLLBAR HIDE ===== */
 
+/* ===== FEED STICKY HEADER ===== */
+.feed-sticky-header {
+  position: relative;
+}
+@media (min-width: 768px) {
+  .feed-sticky-header {
+    position: sticky;
+    top: 56px;
+  }
+}
+/* ===== FIN FEED STICKY HEADER ===== */
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }
