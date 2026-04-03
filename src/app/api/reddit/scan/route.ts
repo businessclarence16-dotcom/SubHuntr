@@ -1,12 +1,51 @@
 // API Route pour scanner Reddit — cherche des posts par keywords dans les subreddits configurés
-// POST /api/reddit/scan { projectId: string }
+// GET  /api/reddit/scan?projectId=xxx → cooldown status
+// POST /api/reddit/scan { projectId: string } → lance un scan
 // Utilise l'API officielle Reddit si les clés sont dispo, sinon les endpoints JSON publics.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { searchSubreddit, hasOfficialApiCredentials } from '@/lib/reddit/client'
-import { PLAN_LIMITS } from '@/constants/plans'
+import { SCAN_COOLDOWN_SECONDS } from '@/constants/plans'
 import { Plan } from '@/types'
+
+// GET — check cooldown status for a project
+export async function GET(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
+  const projectId = request.nextUrl.searchParams.get('projectId')
+  if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 })
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('plan')
+    .eq('id', user.id)
+    .single()
+
+  const userPlan = (profile?.plan ?? 'starter') as Plan
+  const cooldownSeconds = SCAN_COOLDOWN_SECONDS[userPlan] ?? 900
+
+  const { data: lastScan } = await supabase
+    .from('scans')
+    .select('completed_at')
+    .eq('project_id', projectId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  let remainingSeconds = 0
+  if (lastScan?.completed_at) {
+    const elapsed = (Date.now() - new Date(lastScan.completed_at).getTime()) / 1000
+    if (elapsed < cooldownSeconds) {
+      remainingSeconds = Math.ceil(cooldownSeconds - elapsed)
+    }
+  }
+
+  return NextResponse.json({ remainingSeconds, cooldownSeconds })
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -42,25 +81,47 @@ export async function POST(request: NextRequest) {
     .single()
 
   const userPlan = (profile?.plan ?? 'starter') as Plan
-  const limits = PLAN_LIMITS[userPlan]
-  const minInterval = limits.scanIntervalMinutes
+  const cooldownSeconds = SCAN_COOLDOWN_SECONDS[userPlan] ?? 900
 
-  const { data: lastScan } = await supabase
+  // Block if a scan is already running
+  const { data: runningScan } = await supabase
     .from('scans')
-    .select('started_at')
+    .select('id')
     .eq('project_id', projectId)
-    .order('started_at', { ascending: false })
+    .eq('status', 'running')
     .limit(1)
     .single()
 
-  if (lastScan) {
-    const elapsed = (Date.now() - new Date(lastScan.started_at).getTime()) / 60000
-    if (elapsed < minInterval) {
-      const wait = Math.ceil(minInterval - elapsed)
+  if (runningScan) {
+    return NextResponse.json({
+      error: 'cooldown',
+      remainingSeconds: 30,
+      message: 'A scan is already running. Please wait.',
+    }, { status: 429 })
+  }
+
+  // Check cooldown based on last completed scan
+  const { data: lastScan } = await supabase
+    .from('scans')
+    .select('completed_at')
+    .eq('project_id', projectId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (lastScan?.completed_at) {
+    const elapsedSeconds = (Date.now() - new Date(lastScan.completed_at).getTime()) / 1000
+    if (elapsedSeconds < cooldownSeconds) {
+      const remainingSeconds = Math.ceil(cooldownSeconds - elapsedSeconds)
+      const minutes = Math.floor(remainingSeconds / 60)
+      const seconds = remainingSeconds % 60
+      const timeStr = minutes > 0 ? `${minutes}m ${String(seconds).padStart(2, '0')}s` : `${seconds}s`
       return NextResponse.json({
-        error: `Attendez encore ${wait} min avant le prochain scan (plan ${userPlan} : 1 scan / ${minInterval} min). Passez au plan supérieur pour scanner plus souvent.`,
-        upgrade: true,
-      }, { status: 403 })
+        error: 'cooldown',
+        remainingSeconds,
+        message: `Next scan available in ${timeStr}`,
+      }, { status: 429 })
     }
   }
 
@@ -185,6 +246,7 @@ export async function POST(request: NextRequest) {
       postsFound,
       scanId: scan?.id,
       mode,
+      cooldownSeconds,
     })
   } catch (error) {
     if (scan?.id) {

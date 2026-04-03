@@ -3,7 +3,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -94,6 +94,49 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   const [replyPost, setReplyPost] = useState<Post | null>(null)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [cooldownRemaining, setCooldownRemaining] = useState(0)
+  const cooldownInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Format seconds into "Xm Ys" or "Xs"
+  const formatCooldown = useCallback((secs: number): string => {
+    if (secs <= 0) return ''
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return m > 0 ? `${m}m ${String(s).padStart(2, '0')}s` : `${s}s`
+  }, [])
+
+  // Start a countdown timer
+  function startCooldownTimer(seconds: number) {
+    if (cooldownInterval.current) clearInterval(cooldownInterval.current)
+    setCooldownRemaining(Math.max(0, Math.ceil(seconds)))
+    cooldownInterval.current = setInterval(() => {
+      setCooldownRemaining((prev) => {
+        if (prev <= 1) {
+          if (cooldownInterval.current) clearInterval(cooldownInterval.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  // Check cooldown on mount
+  useEffect(() => {
+    async function checkCooldown() {
+      try {
+        const res = await fetch(`/api/reddit/scan?projectId=${projectId}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.remainingSeconds > 0) {
+            startCooldownTimer(data.remainingSeconds)
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    checkCooldown()
+    return () => { if (cooldownInterval.current) clearInterval(cooldownInterval.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
 
   // Welcome banner for first-time users
   useEffect(() => {
@@ -131,12 +174,20 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
 
       const data = await res.json()
 
-      if (!res.ok) {
+      if (res.status === 429 && data.remainingSeconds) {
+        // Cooldown active — start timer
+        startCooldownTimer(data.remainingSeconds)
+        setScanResult(data.message || `Cooldown active. Try again in ${formatCooldown(data.remainingSeconds)}.`)
+      } else if (!res.ok) {
         setScanResult(`Error: ${data.error}`)
         if (data.upgrade) setShowUpgrade(true)
       } else {
         const modeNote = data.mode === 'public' ? ' (public API — official API pending)' : ''
         setScanResult(`Scan complete! ${data.postsFound} new post(s) found.${modeNote}`)
+        // Start cooldown timer after successful scan
+        if (data.cooldownSeconds) {
+          startCooldownTimer(data.cooldownSeconds)
+        }
         router.refresh()
       }
     } catch {
@@ -246,19 +297,27 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         {/* Scan button — matches .btn-p */}
         <button
           onClick={handleScan}
-          disabled={scanning}
-          className="inline-flex h-[42px] shrink-0 items-center gap-2 rounded-[10px] bg-[#1D9E75] px-5 text-[0.85rem] font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={scanning || cooldownRemaining > 0}
+          className={`inline-flex h-[42px] shrink-0 items-center gap-2 rounded-[10px] px-5 text-[0.85rem] font-bold text-white disabled:cursor-not-allowed ${
+            cooldownRemaining > 0
+              ? 'bg-[#52525b] disabled:opacity-70'
+              : 'bg-[#1D9E75] disabled:opacity-50'
+          }`}
           style={{
-            boxShadow: '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
+            boxShadow: cooldownRemaining > 0
+              ? 'none'
+              : '0 0 30px rgba(29,158,117,0.15), 0 4px 12px rgba(0,0,0,0.3)',
             transition: 'all 0.2s',
           }}
           onMouseEnter={(e) => {
+            if (cooldownRemaining > 0) return
             const el = e.currentTarget
             el.style.background = '#17805f'
             el.style.transform = 'translateY(-1px)'
             el.style.boxShadow = '0 0 40px rgba(29,158,117,0.25), 0 8px 24px rgba(0,0,0,0.3)'
           }}
           onMouseLeave={(e) => {
+            if (cooldownRemaining > 0) return
             const el = e.currentTarget
             el.style.background = '#1D9E75'
             el.style.transform = 'translateY(0)'
@@ -267,10 +326,12 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         >
           {scanning ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : cooldownRemaining > 0 ? (
+            <Zap className="h-4 w-4" />
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          {scanning ? 'Scanning...' : 'Scan now'}
+          {scanning ? 'Scanning...' : cooldownRemaining > 0 ? formatCooldown(cooldownRemaining) : 'Scan now'}
         </button>
       </div>
 

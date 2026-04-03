@@ -81,6 +81,14 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   },
 }
 
+// Cooldown entre scans en secondes
+export const SCAN_COOLDOWN_SECONDS: Record<Plan, number> = {
+  starter: 900,    // 15 minutes
+  growth: 300,     // 5 minutes
+  agency: 120,     // 2 minutes
+  enterprise: 60,  // 1 minute
+}
+
 export const PLAN_PRICES: Record<Plan, number> = {
   starter: 29,
   growth: 79,
