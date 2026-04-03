@@ -83,9 +83,9 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 
 // Available auto-scan intervals (in hours) per plan
 export const AUTO_SCAN_INTERVALS: Record<Plan, number[]> = {
-  starter: [12, 24],
-  growth: [4, 6, 12, 24],
-  agency: [2, 4, 6, 12, 24],
+  starter: [6, 12, 24],
+  growth: [2, 4, 6, 12, 24],
+  agency: [1, 2, 4, 6, 12, 24],
   enterprise: [1, 2, 4, 6, 12, 24],
 }
 

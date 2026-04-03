@@ -83,9 +83,9 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 
 // Intervals available per plan
 const AUTO_SCAN_INTERVALS: Record<string, number[]> = {
-  starter: [12, 24],
-  growth: [4, 6, 12, 24],
-  agency: [2, 4, 6, 12, 24],
+  starter: [6, 12, 24],
+  growth: [2, 4, 6, 12, 24],
+  agency: [1, 2, 4, 6, 12, 24],
   enterprise: [1, 2, 4, 6, 12, 24],
 }
 
@@ -95,7 +95,7 @@ const INTERVAL_LABELS: Record<number, string> = {
 
 // Which plan unlocks each interval
 const INTERVAL_PLAN: Record<number, string> = {
-  1: 'Enterprise', 2: 'Agency', 4: 'Growth', 6: 'Growth', 12: 'Starter', 24: 'Starter',
+  1: 'Agency', 2: 'Growth', 4: 'Growth', 6: 'Starter', 12: 'Starter', 24: 'Starter',
 }
 
 export function SettingsClient({ user, project, notifications }: SettingsClientProps) {

@@ -442,7 +442,8 @@ export function LandingPage() {
               <ul className="pl">
                 <li>5 keywords</li>
                 <li>15 subreddits</li>
-                <li>15-min scan</li>
+                <li>Auto-scan every 6h</li>
+                <li>Manual scan every 15min</li>
                 <li>1 project</li>
                 <li>Email alerts</li>
                 <li className="off">Slack / Discord</li>
@@ -461,7 +462,8 @@ export function LandingPage() {
               <ul className="pl">
                 <li>25 keywords</li>
                 <li>75 subreddits</li>
-                <li>5-min scan</li>
+                <li>Auto-scan every 2h</li>
+                <li>Manual scan every 5min</li>
                 <li>3 projects</li>
                 <li>Slack + Discord</li>
                 <li>Competitor tracking</li>
@@ -479,7 +481,8 @@ export function LandingPage() {
               <ul className="pl">
                 <li>Unlimited keywords</li>
                 <li>Unlimited subreddits</li>
-                <li>2-min scan</li>
+                <li>Auto-scan every 1h</li>
+                <li>Manual scan every 2min</li>
                 <li>10 projects</li>
                 <li>Everything in Growth</li>
                 <li>CSV export</li>

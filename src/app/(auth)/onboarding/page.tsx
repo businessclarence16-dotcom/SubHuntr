@@ -69,9 +69,9 @@ const MOCK_PREVIEW_POSTS: TopPost[] = [
 const stepLabels = ['Your product', 'Keywords', 'Subreddits', 'First scan', 'Choose plan']
 
 const PLAN_DEFS = [
-  { id: 'starter', name: 'Starter', monthlyPrice: 29, annualPerMonth: 24, annualTotal: 288, subtitle: 'Solo founders testing the waters', trial: true, features: ['5 keywords', '15 subreddits', '15-min scan', '1 project', 'Email alerts'] },
-  { id: 'growth', name: 'Growth', monthlyPrice: 79, annualPerMonth: 65, annualTotal: 780, subtitle: 'Teams serious about Reddit leads', popular: true, trial: true, features: ['25 keywords', '75 subreddits', '5-min scan', '3 projects', 'Slack + Discord', 'Competitor tracking'] },
-  { id: 'agency', name: 'Agency', monthlyPrice: 199, annualPerMonth: 165, annualTotal: 1980, subtitle: 'Agencies managing multiple clients', trial: true, features: ['Unlimited keywords', 'Unlimited subreddits', '2-min scan', '10 projects', 'Everything in Growth', 'CSV export + Priority support'] },
+  { id: 'starter', name: 'Starter', monthlyPrice: 29, annualPerMonth: 24, annualTotal: 288, subtitle: 'Solo founders testing the waters', trial: true, features: ['5 keywords', '15 subreddits', 'Auto-scan every 6h', 'Manual scan every 15min', '1 project', 'Email alerts'] },
+  { id: 'growth', name: 'Growth', monthlyPrice: 79, annualPerMonth: 65, annualTotal: 780, subtitle: 'Teams serious about Reddit leads', popular: true, trial: true, features: ['25 keywords', '75 subreddits', 'Auto-scan every 2h', 'Manual scan every 5min', '3 projects', 'Slack + Discord', 'Competitor tracking'] },
+  { id: 'agency', name: 'Agency', monthlyPrice: 199, annualPerMonth: 165, annualTotal: 1980, subtitle: 'Agencies managing multiple clients', trial: true, features: ['Unlimited keywords', 'Unlimited subreddits', 'Auto-scan every 1h', 'Manual scan every 2min', '10 projects', 'Everything in Growth', 'CSV export + Priority support'] },
 ]
 
 // Shared input style matching .roi-input from landing.css
