@@ -107,6 +107,11 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
 
+  // Email
+  const [email, setEmail] = useState(user.email)
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [emailMsg, setEmailMsg] = useState<{ text: string; error: boolean } | null>(null)
+
   // Password
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -151,6 +156,36 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
       }
     } finally {
       setSavingProfile(false)
+    }
+  }
+
+  async function changeEmail() {
+    const trimmed = email.trim()
+    if (trimmed === user.email) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailMsg({ text: 'Please enter a valid email address', error: true })
+      return
+    }
+    setSavingEmail(true)
+    setEmailMsg(null)
+    try {
+      const res = await fetch('/api/settings/email', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setEmailMsg({ text: data.error || 'Failed to update email', error: true })
+      } else {
+        setEmailMsg({ text: 'Email updated successfully!', error: false })
+        router.refresh()
+        setTimeout(() => setEmailMsg(null), 3000)
+      }
+    } catch {
+      setEmailMsg({ text: 'Network error', error: true })
+    } finally {
+      setSavingEmail(false)
     }
   }
 
@@ -365,14 +400,35 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
                 <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
                   Email
                 </label>
-                <input
-                  value={user.email}
-                  disabled
-                  style={{ ...inputStyle, opacity: 0.5, cursor: 'not-allowed' }}
-                />
-                <p style={{ marginTop: 4, fontSize: '.72rem', color: '#52525b' }}>
-                  Contact support to change email
-                </p>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
+                  />
+                  <button
+                    onClick={changeEmail}
+                    disabled={savingEmail || email.trim() === user.email}
+                    style={{
+                      ...btnPrimary,
+                      padding: '11px 16px',
+                      opacity: savingEmail || email.trim() === user.email ? 0.5 : 1,
+                      pointerEvents: savingEmail || email.trim() === user.email ? 'none' : 'auto',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {savingEmail && <Loader2 size={15} className="animate-spin" />}
+                    Change
+                  </button>
+                </div>
+                {emailMsg && (
+                  <p style={{ marginTop: 4, fontSize: '.72rem', color: emailMsg.error ? '#ef4444' : '#1D9E75', fontWeight: 600 }}>
+                    {emailMsg.text}
+                  </p>
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
