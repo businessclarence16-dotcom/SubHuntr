@@ -122,6 +122,10 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
 
   const planOrder: Plan[] = ['starter', 'growth', 'agency', 'enterprise']
   const hasSubscription = !!stripeSubscriptionId
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [downgradeInfo, setDowngradeInfo] = useState<{ plan: string; date: string } | null>(null)
+  const [confirmDowngrade, setConfirmDowngrade] = useState<{ plan: string; name: string } | null>(null)
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -132,23 +136,64 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
     }
   }, [searchParams])
 
-  // Both new checkout and plan change redirect to Stripe Checkout
+  // New subscription → Stripe Checkout; existing subscription → change-plan API
   async function handlePlanAction(targetPlan: 'starter' | 'growth' | 'agency') {
+    if (!hasSubscription) {
+      // First subscription — redirect to Stripe Checkout
+      setLoading(targetPlan)
+      try {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
+        })
+        const data = await res.json()
+        if (data.url) {
+          window.location.href = data.url
+          return
+        }
+      } catch { /* ignore */ }
+      setLoading(null)
+      return
+    }
+
+    // Check if this is a downgrade that needs confirmation
+    const currentIdx = planOrder.indexOf(plan)
+    const targetIdx = planOrder.indexOf(targetPlan)
+    if (targetIdx < currentIdx && !confirmDowngrade) {
+      const planName = planDefs.find((p) => p.id === targetPlan)?.name ?? targetPlan
+      setConfirmDowngrade({ plan: targetPlan, name: planName })
+      return
+    }
+    setConfirmDowngrade(null)
+
+    // Existing subscription — use change-plan API (no redirect)
     setLoading(targetPlan)
+    setErrorMessage(null)
     try {
-      const endpoint = hasSubscription ? '/api/stripe/change-plan' : '/api/stripe/checkout'
-      const res = await fetch(endpoint, {
+      const res = await fetch('/api/stripe/change-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: targetPlan, billing: annual ? 'annual' : 'monthly' }),
       })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-        return
+
+      if (!res.ok) {
+        setErrorMessage(data.error || 'Failed to change plan')
+      } else if (data.type === 'upgrade') {
+        setSuccessMessage(data.message)
+        trackEvent('plan_upgraded', { from: plan, to: targetPlan })
+        setTimeout(() => router.refresh(), 1000)
+      } else if (data.type === 'downgrade') {
+        setSuccessMessage(data.message)
+        setDowngradeInfo({
+          plan: data.newPlan,
+          date: new Date(data.effectiveDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        })
+        trackEvent('plan_downgraded', { from: plan, to: targetPlan })
       }
     } catch {
-      // ignore
+      setErrorMessage('Network error. Please try again.')
     }
     setLoading(null)
   }
@@ -218,6 +263,54 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
           >
             <XIcon size={16} />
           </button>
+        </div>
+      )}
+
+      {/* ── Success/error messages from plan change ── */}
+      {successMessage && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', marginBottom: 24,
+            background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.25)',
+            borderRadius: 12, color: '#34d399', fontSize: '.88rem', fontWeight: 600,
+          }}
+        >
+          <CheckCircle size={18} />
+          {successMessage}
+          <button onClick={() => setSuccessMessage(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#34d399', cursor: 'pointer', padding: 2 }}>
+            <XIcon size={16} />
+          </button>
+        </div>
+      )}
+      {errorMessage && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', marginBottom: 24,
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 12, color: '#ef4444', fontSize: '.88rem', fontWeight: 600,
+          }}
+        >
+          <AlertTriangle size={18} />
+          {errorMessage}
+          <button onClick={() => setErrorMessage(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 2 }}>
+            <XIcon size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Downgrade scheduled banner ── */}
+      {downgradeInfo && (
+        <div
+          className="animate-fade-in-up"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', marginBottom: 24,
+            background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
+            borderRadius: 12, color: '#f59e0b', fontSize: '.85rem', fontWeight: 600,
+          }}
+        >
+          Switching to {downgradeInfo.plan.charAt(0).toUpperCase() + downgradeInfo.plan.slice(1)} on {downgradeInfo.date}
         </div>
       )}
 
@@ -569,6 +662,60 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
       <p className="animate-fade-in-up" style={{ textAlign: 'center', fontSize: '.82rem', color: '#52525b', marginTop: 32, animationDelay: '0.15s' }}>
         7-day free trial on Starter. Upgrade anytime.
       </p>
+
+      {/* ── Downgrade confirmation dialog ── */}
+      {confirmDowngrade && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 100, padding: 24,
+          }}
+          onClick={() => setConfirmDowngrade(null)}
+        >
+          <div
+            style={{ ...cardStyle, padding: 32, maxWidth: 440, width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fafafa', margin: '0 0 8px' }}>
+              Downgrade to {confirmDowngrade.name}?
+            </h3>
+            <p style={{ color: '#a1a1aa', fontSize: '.85rem', lineHeight: 1.6, marginBottom: 8 }}>
+              You&apos;ll keep your current {plan.charAt(0).toUpperCase() + plan.slice(1)} features until the end of your billing period.
+              After that, you&apos;ll switch to {confirmDowngrade.name} at ${planDefs.find((p) => p.id === confirmDowngrade.plan)?.[annual ? 'annualPricePerMonth' : 'monthlyPrice']}/mo.
+            </p>
+            {subscriptionInfo?.currentPeriodEnd && (
+              <p style={{ color: '#f59e0b', fontSize: '.82rem', fontWeight: 600, marginBottom: 24 }}>
+                Change takes effect on {formatDate(subscriptionInfo.currentPeriodEnd)}
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirmDowngrade(null)}
+                style={{
+                  padding: '10px 20px', borderRadius: 10, fontSize: '.85rem', fontWeight: 600,
+                  background: 'transparent', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+                }}
+              >
+                Keep current plan
+              </button>
+              <button
+                onClick={() => handlePlanAction(confirmDowngrade.plan as 'starter' | 'growth' | 'agency')}
+                disabled={loading === confirmDowngrade.plan}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '10px 20px', borderRadius: 10, fontSize: '.85rem', fontWeight: 600,
+                  background: 'rgba(255,255,255,0.05)', color: '#fafafa',
+                  border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', transition: 'all .2s',
+                }}
+              >
+                {loading === confirmDowngrade.plan && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                Confirm downgrade
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Cancel subscription confirmation dialog ── */}
       {showCancelDialog && (

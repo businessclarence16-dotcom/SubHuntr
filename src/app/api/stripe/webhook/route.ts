@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       // Find user by stripe_customer_id
       const { data: user, error: findError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, plan')
         .eq('stripe_customer_id', customerId)
         .single()
 
@@ -109,35 +109,57 @@ export async function POST(request: NextRequest) {
 
       // Determine plan from price ID
       const priceId = subscription.items.data[0]?.price.id
-      let plan: string = 'starter'
+      let newPlan: string = 'starter'
 
       if (priceId) {
         const detectedPlan = getPlanFromPriceId(priceId)
-        if (detectedPlan) plan = detectedPlan
-        console.log(`[Webhook] Price ${priceId} → plan: ${plan}`)
+        if (detectedPlan) newPlan = detectedPlan
+        console.log(`[Webhook] Price ${priceId} → plan: ${newPlan}`)
       }
 
       // Also check subscription metadata as fallback
-      if (plan === 'starter' && subscription.metadata?.plan) {
-        plan = subscription.metadata.plan
-        console.log(`[Webhook] Using subscription metadata plan: ${plan}`)
+      if (newPlan === 'starter' && subscription.metadata?.plan) {
+        newPlan = subscription.metadata.plan
+        console.log(`[Webhook] Using subscription metadata plan: ${newPlan}`)
       }
 
       // If subscription is canceled or not active, revert to starter
       if (subscription.cancel_at_period_end || subscription.status === 'canceled' || subscription.status === 'unpaid') {
         console.log(`[Webhook] Subscription canceled/unpaid, reverting to starter`)
-        plan = 'starter'
+        newPlan = 'starter'
       }
 
-      // If trialing, keep the plan (user should have access during trial)
+      // Detect upgrade vs downgrade to decide if we should update plan now
+      const planOrder: Record<string, number> = { starter: 1, growth: 2, agency: 3 }
+      const currentRank = planOrder[user.plan ?? 'starter'] ?? 1
+      const newRank = planOrder[newPlan] ?? 1
+      const isDowngrade = newRank < currentRank
+
+      if (isDowngrade && (subscription.status === 'active' || subscription.status === 'trialing')) {
+        // DOWNGRADE: don't update plan now — user keeps current plan until period ends
+        // The plan will be synced via invoice.payment_succeeded at renewal
+        console.log(`[Webhook] Downgrade detected (${user.plan} → ${newPlan}) — keeping current plan until period end`)
+
+        // Still update subscription_id
+        await supabase
+          .from('users')
+          .update({
+            stripe_subscription_id: subscription.id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+        break
+      }
+
+      // UPGRADE or status change: update plan immediately
       if (subscription.status === 'trialing' || subscription.status === 'active') {
-        console.log(`[Webhook] Subscription ${subscription.status}, keeping plan: ${plan}`)
+        console.log(`[Webhook] Subscription ${subscription.status}, updating to plan: ${newPlan}`)
       }
 
       const { error: updateError } = await supabase
         .from('users')
         .update({
-          plan,
+          plan: newPlan,
           stripe_subscription_id: subscription.id,
           updated_at: new Date().toISOString(),
         })
@@ -146,7 +168,7 @@ export async function POST(request: NextRequest) {
       if (updateError) {
         console.error(`[Webhook] Failed to update user ${user.id}:`, updateError)
       } else {
-        console.log(`[Webhook] User ${user.id} updated to plan: ${plan}`)
+        console.log(`[Webhook] User ${user.id} updated to plan: ${newPlan}`)
       }
       break
     }
@@ -220,16 +242,31 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (user) {
-          // Ensure subscription ID is stored (handles edge cases)
+          // Sync plan from the subscription's current price — this handles downgrades
+          // that were scheduled at period end (plan changes take effect at renewal)
+          const stripeInstance = getStripe()
+          const sub = await stripeInstance.subscriptions.retrieve(subscriptionId)
+          const subPriceId = sub.items.data[0]?.price.id
+          let syncedPlan: string | null = null
+          if (subPriceId) {
+            syncedPlan = getPlanFromPriceId(subPriceId)
+          }
+
+          const updateData: Record<string, unknown> = {
+            stripe_subscription_id: subscriptionId,
+            updated_at: new Date().toISOString(),
+          }
+          if (syncedPlan) {
+            updateData.plan = syncedPlan
+            console.log(`[Webhook] Syncing plan from subscription price: ${syncedPlan}`)
+          }
+
           await supabase
             .from('users')
-            .update({
-              stripe_subscription_id: subscriptionId,
-              updated_at: new Date().toISOString(),
-            })
+            .update(updateData)
             .eq('id', user.id)
 
-          console.log(`[Webhook] User ${user.id} payment succeeded, subscription ${subscriptionId} confirmed`)
+          console.log(`[Webhook] User ${user.id} payment succeeded, plan: ${syncedPlan ?? 'unchanged'}, subscription ${subscriptionId} confirmed`)
         }
       }
       break

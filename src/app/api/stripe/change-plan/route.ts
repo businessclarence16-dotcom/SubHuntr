@@ -1,9 +1,12 @@
-// API Route to change plan — cancels current subscription and creates new Stripe Checkout
+// API Route to change plan — upgrades immediately with proration, downgrades at period end
 // POST /api/stripe/change-plan { plan: 'starter' | 'growth' | 'agency', billing: 'monthly' | 'annual' }
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getStripe, getPriceId } from '@/lib/stripe/client'
+import Stripe from 'stripe'
+
+const PLAN_ORDER: Record<string, number> = { starter: 1, growth: 2, agency: 3 }
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -13,9 +16,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { plan, billing } = await request.json()
+  const { plan: newPlan, billing } = await request.json()
 
-  if (!plan || !['starter', 'growth', 'agency'].includes(plan)) {
+  if (!newPlan || !['starter', 'growth', 'agency'].includes(newPlan)) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
@@ -25,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('stripe_customer_id, stripe_subscription_id')
+    .select('plan, stripe_customer_id, stripe_subscription_id')
     .eq('id', user.id)
     .single()
 
@@ -33,42 +36,69 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No active subscription to change' }, { status: 400 })
   }
 
-  console.log(`[ChangePlan] User ${user.id} changing to ${plan} (${billing})`)
+  const currentPlan = profile.plan ?? 'starter'
+  const currentRank = PLAN_ORDER[currentPlan] ?? 1
+  const newRank = PLAN_ORDER[newPlan] ?? 1
+  const isUpgrade = newRank > currentRank
+
+  console.log(`[ChangePlan] User ${user.id}: ${currentPlan} → ${newPlan} (${billing}) — ${isUpgrade ? 'UPGRADE' : 'DOWNGRADE'}`)
 
   try {
     const stripe = getStripe()
+    const newPriceId = getPriceId(newPlan, billing)
 
-    // Cancel the current subscription immediately
-    await stripe.subscriptions.cancel(profile.stripe_subscription_id)
-    console.log(`[ChangePlan] Canceled subscription ${profile.stripe_subscription_id}`)
+    // Retrieve the current subscription
+    const subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id) as Stripe.Subscription
+    const currentItemId = subscription.items.data[0]?.id
 
-    // Clear subscription in DB (webhook will also handle this, but clear it now for the checkout guard)
-    await supabase
-      .from('users')
-      .update({ stripe_subscription_id: null, updated_at: new Date().toISOString() })
-      .eq('id', user.id)
+    if (!currentItemId) {
+      return NextResponse.json({ error: 'Could not find subscription item' }, { status: 500 })
+    }
 
-    // Create a new Stripe Checkout session for the new plan — NO trial (not first subscription)
-    const origin = request.nextUrl.origin
-    const priceId = getPriceId(plan, billing)
-    console.log(`[ChangePlan] Creating checkout for price ${priceId}`)
+    if (isUpgrade) {
+      // UPGRADE: apply immediately + prorate
+      await stripe.subscriptions.update(profile.stripe_subscription_id, {
+        items: [{ id: currentItemId, price: newPriceId }],
+        proration_behavior: 'always_invoice',
+      })
 
-    const session = await stripe.checkout.sessions.create({
-      customer: profile.stripe_customer_id!,
-      mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/billing?success=true`,
-      cancel_url: `${origin}/billing`,
-      allow_promotion_codes: true,
-      metadata: { userId: user.id, plan, billing },
-      subscription_data: {
-        metadata: { userId: user.id, plan },
-        // No trial_period_days — this is a plan change, not first subscription
-      },
-    })
+      // Update plan in Supabase immediately (webhook will also do this as backup)
+      await supabase
+        .from('users')
+        .update({ plan: newPlan, updated_at: new Date().toISOString() })
+        .eq('id', user.id)
 
-    console.log(`[ChangePlan] Checkout session created: ${session.id}`)
-    return NextResponse.json({ url: session.url })
+      console.log(`[ChangePlan] Upgrade complete — ${currentPlan} → ${newPlan}`)
+
+      return NextResponse.json({
+        success: true,
+        type: 'upgrade',
+        message: `Upgraded to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}. Prorated charge applied.`,
+      })
+    } else {
+      // DOWNGRADE: apply at end of billing period, no proration/refund
+      await stripe.subscriptions.update(profile.stripe_subscription_id, {
+        items: [{ id: currentItemId, price: newPriceId }],
+        proration_behavior: 'none',
+      })
+
+      // Do NOT update plan in Supabase yet — user keeps current plan until period ends
+      // The webhook invoice.payment_succeeded will sync the plan at renewal
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const periodEndUnix = (subscription as any).current_period_end as number | undefined
+      const periodEnd = periodEndUnix ? new Date(periodEndUnix * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      const formattedDate = periodEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+
+      console.log(`[ChangePlan] Downgrade scheduled — ${currentPlan} → ${newPlan} on ${formattedDate}`)
+
+      return NextResponse.json({
+        success: true,
+        type: 'downgrade',
+        message: `Your plan will change to ${newPlan.charAt(0).toUpperCase() + newPlan.slice(1)} on ${formattedDate}. You keep ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} features until then.`,
+        effectiveDate: periodEnd.toISOString(),
+        newPlan,
+      })
+    }
   } catch (err) {
     console.error(`[ChangePlan] Error:`, err)
     const message = err instanceof Error ? err.message : 'Failed to change plan'
