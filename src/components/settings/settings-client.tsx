@@ -304,7 +304,7 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
 
       {/* ── Tab pills ── */}
       <div
-        className="animate-fade-in-up"
+        className="animate-fade-in-up scrollbar-hide"
         style={{
           display: 'flex',
           gap: 4,
@@ -314,6 +314,8 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
           borderRadius: 10,
           border: '1px solid rgba(255,255,255,0.06)',
           animationDelay: '0.05s',
+          overflowX: 'auto',
+          flexWrap: 'nowrap',
         }}
       >
         {tabs.map((tab) => {
@@ -323,7 +325,7 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                flex: 1,
+                flex: '1 0 auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

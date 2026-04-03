@@ -487,8 +487,8 @@ export function BillingClient({ plan, stripeCustomerId, stripeSubscriptionId, su
 
       {/* ── Plan cards grid ── */}
       <div
-        className="animate-fade-in-up"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, animationDelay: '0.1s' }}
+        className="animate-fade-in-up grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4"
+        style={{ animationDelay: '0.1s' }}
       >
         {planDefs.map((p) => {
           const isCurrent = p.id === plan

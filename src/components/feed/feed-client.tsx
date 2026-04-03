@@ -255,7 +255,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
   ]
 
   return (
-    <div className="space-y-6" style={{ overflow: 'hidden', maxWidth: '100%' }}>
+    <div className="space-y-4 md:space-y-6" style={{ overflow: 'hidden', maxWidth: '100%' }}>
       {/* Welcome banner for first-time users */}
       {showWelcome && (
         <div className="animate-fade-in-up flex items-start justify-between rounded-[12px] border border-[rgba(29,158,117,0.2)] bg-[rgba(29,158,117,0.08)] px-5 py-4">
@@ -276,6 +276,9 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
           </button>
         </div>
       )}
+
+      {/* Sticky header zone */}
+      <div style={{ position: 'sticky', top: 56, zIndex: 10, backgroundColor: '#09090b', paddingBottom: 16, marginBottom: -16 }}>
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%' }}>
@@ -409,6 +412,8 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
         </div>
       </div>
 
+      </div>{/* end sticky header zone */}
+
       {/* Post list */}
       {filteredPosts.length === 0 ? (
         /* Empty state */
@@ -478,10 +483,10 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
             return (
               <div
                 key={post.id}
-                className="animate-fade-in-up group flex items-center gap-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-4 py-3 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c]"
+                className="animate-fade-in-up group flex items-center gap-2 rounded-[10px] border border-[rgba(255,255,255,0.06)] bg-[#131316] px-3 py-2 hover:border-[rgba(255,255,255,0.1)] hover:bg-[#18181c] md:gap-3 md:rounded-[12px] md:px-4 md:py-3"
                 style={{
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  animationDelay: `${Math.min(i * 0.04, 0.4)}s`,
+                  animationDelay: `${Math.min(i * 0.05, 0.5)}s`,
                   opacity: isReplied ? 0.7 : isSkipped ? 0.5 : 1,
                   overflow: 'hidden',
                   maxWidth: '100%',
@@ -489,7 +494,7 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
               >
                 {/* Score badge — matches .demo-sc */}
                 <div
-                  className={`flex h-[34px] w-[34px] items-center justify-center rounded-[8px] font-mono text-[0.8rem] font-bold ${
+                  className={`flex h-[28px] w-[28px] items-center justify-center rounded-[6px] font-mono text-[0.72rem] font-bold md:h-[34px] md:w-[34px] md:rounded-[8px] md:text-[0.8rem] ${
                     score >= 8
                       ? 'bg-[rgba(29,158,117,0.15)] text-[#34d399]'
                       : score >= 5
@@ -535,24 +540,24 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1.5" style={{ flexShrink: 0 }}>
+                <div className="flex items-center gap-1" style={{ flexShrink: 0 }}>
                   <a
                     href={post.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-7 items-center gap-1 rounded-[6px] border border-[rgba(255,255,255,0.06)] px-2.5 text-[0.65rem] font-semibold text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa]"
+                    className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] hover:border-[rgba(255,255,255,0.1)] hover:text-[#fafafa] md:w-auto md:gap-1 md:px-2.5 md:text-[0.65rem] md:font-semibold"
                     style={{ transition: 'all 0.15s' }}
                   >
-                    <ArrowUpRight className="h-3 w-3" /> Open
+                    <ArrowUpRight className="h-3 w-3" /> <span className="hidden md:inline">Open</span>
                   </a>
                   {!isReplied && (
                     <button
                       onClick={() => setReplyPost(post)}
                       disabled={updatingPost === post.id}
-                      className="flex h-7 items-center gap-1 rounded-[6px] bg-[#1D9E75] px-2.5 text-[0.65rem] font-semibold text-white hover:bg-[#17805f] disabled:opacity-50"
+                      className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#1D9E75] text-white hover:bg-[#17805f] disabled:opacity-50 md:w-auto md:gap-1 md:px-2.5 md:text-[0.65rem] md:font-semibold"
                       style={{ transition: 'all 0.15s' }}
                     >
-                      <Reply className="h-3 w-3" /> Reply
+                      <Reply className="h-3 w-3" /> <span className="hidden md:inline">Reply</span>
                     </button>
                   )}
                   {post.status !== 'saved' && post.status !== 'replied' && (
