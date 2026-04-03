@@ -353,9 +353,9 @@ export function FeedClient({ projectId, projectName, posts: initialPosts, keywor
       )}
 
       {/* Quick filters + dropdowns */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%', flexWrap: 'wrap' }}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" style={{ overflow: 'hidden', maxWidth: '100%', flexWrap: 'wrap', marginTop: 8 }}>
         {/* Quick filter pills */}
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {quickFilters.map((f) => (
             <button
               key={f.key}
