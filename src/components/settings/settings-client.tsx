@@ -111,6 +111,9 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
   const [email, setEmail] = useState(user.email)
   const [savingEmail, setSavingEmail] = useState(false)
   const [emailMsg, setEmailMsg] = useState<{ text: string; error: boolean } | null>(null)
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false)
+  const [emailPassword, setEmailPassword] = useState('')
+  const [emailPasswordError, setEmailPasswordError] = useState<string | null>(null)
 
   // Password
   const [newPassword, setNewPassword] = useState('')
@@ -159,31 +162,46 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
     }
   }
 
-  async function changeEmail() {
+  function initiateEmailChange() {
     const trimmed = email.trim()
     if (trimmed === user.email) return
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setEmailMsg({ text: 'Please enter a valid email address', error: true })
       return
     }
-    setSavingEmail(true)
     setEmailMsg(null)
+    setEmailPassword('')
+    setEmailPasswordError(null)
+    setShowEmailConfirm(true)
+  }
+
+  async function confirmEmailChange() {
+    if (!emailPassword) {
+      setEmailPasswordError('Password is required')
+      return
+    }
+    setSavingEmail(true)
+    setEmailPasswordError(null)
     try {
       const res = await fetch('/api/settings/email', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmed }),
+        body: JSON.stringify({ newEmail: email.trim(), currentPassword: emailPassword }),
       })
       const data = await res.json()
-      if (!res.ok) {
-        setEmailMsg({ text: data.error || 'Failed to update email', error: true })
+      if (res.status === 401) {
+        setEmailPasswordError(data.error || 'Incorrect password')
+      } else if (!res.ok) {
+        setEmailPasswordError(data.error || 'Failed to update email')
       } else {
+        setShowEmailConfirm(false)
+        setEmailPassword('')
         setEmailMsg({ text: 'Email updated successfully!', error: false })
         router.refresh()
         setTimeout(() => setEmailMsg(null), 3000)
       }
     } catch {
-      setEmailMsg({ text: 'Network error', error: true })
+      setEmailPasswordError('Network error')
     } finally {
       setSavingEmail(false)
     }
@@ -410,7 +428,7 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
                     onBlur={blurInput}
                   />
                   <button
-                    onClick={changeEmail}
+                    onClick={initiateEmailChange}
                     disabled={savingEmail || email.trim() === user.email}
                     style={{
                       ...btnPrimary,
@@ -908,6 +926,75 @@ export function SettingsClient({ user, project, notifications }: SettingsClientP
       )}
 
       {/* ── Delete account confirmation dialog ── */}
+      {/* ── Email change confirmation dialog ── */}
+      {showEmailConfirm && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 100, padding: 24,
+          }}
+          onClick={() => { setShowEmailConfirm(false); setEmailPassword(''); setEmailPasswordError(null) }}
+        >
+          <div
+            style={{ ...cardStyle, padding: 32, maxWidth: 400, width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontWeight: 700, fontSize: '1.05rem', color: '#fafafa', margin: '0 0 8px' }}>
+              Confirm email change
+            </h3>
+            <p style={{ color: '#a1a1aa', fontSize: '.85rem', lineHeight: 1.6, marginBottom: 20 }}>
+              Enter your current password to change your email to <strong style={{ color: '#fafafa' }}>{email.trim()}</strong>
+            </p>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: '#a1a1aa', marginBottom: 6 }}>
+                Current password
+              </label>
+              <input
+                type="password"
+                value={emailPassword}
+                onChange={(e) => setEmailPassword(e.target.value)}
+                placeholder="Your password"
+                style={inputStyle}
+                onFocus={focusInput}
+                onBlur={blurInput}
+                onKeyDown={(e) => { if (e.key === 'Enter') confirmEmailChange() }}
+                autoFocus
+              />
+              {emailPasswordError && (
+                <p style={{ marginTop: 6, fontSize: '.78rem', color: '#ef4444', fontWeight: 600 }}>
+                  {emailPasswordError}
+                </p>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => { setShowEmailConfirm(false); setEmailPassword(''); setEmailPasswordError(null) }}
+                style={{
+                  padding: '10px 20px', borderRadius: 10, fontSize: '.85rem', fontWeight: 600,
+                  background: 'transparent', color: '#a1a1aa', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmEmailChange}
+                disabled={savingEmail || !emailPassword}
+                style={{
+                  ...btnPrimary,
+                  padding: '10px 20px',
+                  opacity: savingEmail || !emailPassword ? 0.5 : 1,
+                  pointerEvents: savingEmail || !emailPassword ? 'none' : 'auto',
+                }}
+              >
+                {savingEmail && <Loader2 size={14} className="animate-spin" />}
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDeleteDialog && (
         <div
           style={{

@@ -1,5 +1,5 @@
-// API to change user email — uses Supabase Admin to update auth + users table
-// PUT /api/settings/email { email: string }
+// API to change user email — verifies current password first, then uses Supabase Admin
+// PUT /api/settings/email { newEmail: string, currentPassword: string }
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -22,13 +22,17 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { email } = await request.json()
+  const { newEmail, currentPassword } = await request.json()
 
-  if (!email || typeof email !== 'string') {
+  if (!newEmail || typeof newEmail !== 'string') {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
-  const trimmed = email.trim().toLowerCase()
+  if (!currentPassword || typeof currentPassword !== 'string') {
+    return NextResponse.json({ error: 'Password is required' }, { status: 400 })
+  }
+
+  const trimmed = newEmail.trim().toLowerCase()
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
     return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
@@ -36,6 +40,17 @@ export async function PUT(request: NextRequest) {
 
   if (trimmed === user.email) {
     return NextResponse.json({ error: 'Email is the same as current' }, { status: 400 })
+  }
+
+  // Verify current password before allowing email change
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: currentPassword,
+  })
+
+  if (signInError) {
+    console.log(`[Settings:Email] Password verification failed for user ${user.id}`)
+    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
   }
 
   try {
@@ -59,7 +74,6 @@ export async function PUT(request: NextRequest) {
 
     if (dbError) {
       console.error('[Settings:Email] DB update error:', dbError)
-      // Auth email was already changed, just log the DB error
     }
 
     console.log(`[Settings:Email] User ${user.id} email changed to ${trimmed}`)
