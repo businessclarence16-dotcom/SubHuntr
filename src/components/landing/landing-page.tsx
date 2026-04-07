@@ -21,21 +21,11 @@ const MONTHLY_PRICES = [29, 79, 199]
 const ANNUAL_PRICES = [24, 65, 165]
 const ANNUAL_TOTALS = ['$288', '$780', '$1,980']
 
-function CheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M8 0a8 8 0 110 16A8 8 0 018 0zm3.5 5.5l-1-1L7 8l-1.5-1.5-1 1L7 10l4.5-4.5z" />
-    </svg>
-  )
-}
-
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [annual, setAnnual] = useState(false)
   const [priceSwitching, setPriceSwitching] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [spVisible, setSpVisible] = useState(false)
-  const [spDismissed, setSpDismissed] = useState(false)
 
   // Demo feed state
   const [feedBadge, setFeedBadge] = useState(3)
@@ -59,12 +49,6 @@ export function LandingPage() {
     )
     document.querySelectorAll('.landing .rv').forEach((el) => obs.observe(el))
     return () => obs.disconnect()
-  }, [])
-
-  // Social proof banner
-  useEffect(() => {
-    const timer = setTimeout(() => setSpVisible(true), 4000)
-    return () => { clearTimeout(timer) }
   }, [])
 
   // Demo feed — init + interval
@@ -173,8 +157,8 @@ export function LandingPage() {
         <div className="hero-bg"><div className="hero-grad"></div><div className="hero-lines"></div></div>
         <div className="ctn">
           <div className="urg"><span className="dot"></span> <span>GummySearch is dead. Their 2,000+ users need a new home.</span></div>
-          <h1>Someone on Reddit just asked<br />for a tool like yours.<br /><span className="gr">Will you answer — or your competitor?</span></h1>
-          <p className="hero-desc">SubHuntr scans subreddits every 2 minutes for high-intent buyers. Every post is <strong>scored 1–10</strong>. You get alerted instantly. You reply first. <strong>You close.</strong></p>
+          <h1>Find buyers on Reddit.<br />Reply before your competitors.</h1>
+          <p className="hero-desc">SubHuntr scans Reddit 24/7 and scores every post by buying intent (1-10). Get alerted when hot leads drop. Reply with proven templates. Close before anyone else sees the post.</p>
           <div className="hero-act">
             <Link href="/signup" className="btn-p">
               Start hunting leads — free for 7 days{' '}
@@ -182,12 +166,8 @@ export function LandingPage() {
             </Link>
             <a href="#how" className="btn-g" onClick={(e) => handleSmoothScroll(e, 'how')}>See it in action</a>
           </div>
-          <div className="hero-meta">Credit card required · Cancel anytime · 3-min setup</div>
-          <div className="trust-b">
-            <span className="tb"><CheckIcon /> Real-time Reddit data</span>
-            <span className="tb"><CheckIcon /> No fake votes or bots</span>
-            <span className="tb"><CheckIcon /> Setup in 3 minutes</span>
-            <span className="tb"><CheckIcon /> 52+ templates</span>
+          <div className="hero-stats">
+            <strong>336</strong> posts scanned · <strong>11</strong> high-intent leads found · <strong>&lt;30s</strong> per scan
           </div>
 
           {/* DEMO */}
@@ -257,83 +237,72 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* BEFORE / AFTER */}
-      <section className="sec ba" id="ba">
-        <div className="ctn">
-          <div className="ba-header">
-            <div className="slbl green rv">Before vs After</div>
-            <div className="stl rv">Stop searching manually.<br />Start closing automatically.</div>
-            <p className="sdsc rv">See how SubHuntr transforms your Reddit lead generation workflow.</p>
-          </div>
-          <div className="ba-grid rv">
-            <div className="ba-card before">
-              <div className="ba-label"><span>✗</span> Without SubHuntr</div>
-              <ul className="ba-list">
-                <li><span className="icon">✗</span> 30 min/day manually searching Reddit</li>
-                <li><span className="icon">✗</span> Miss 90% of relevant posts</li>
-                <li><span className="icon">✗</span> Reply hours or days too late</li>
-                <li><span className="icon">✗</span> No idea which posts are worth replying to</li>
-                <li><span className="icon">✗</span> Can&apos;t track if replies drive results</li>
-              </ul>
-            </div>
-            <div className="ba-arrow">→</div>
-            <div className="ba-card after">
-              <div className="ba-label"><span>✓</span> With SubHuntr</div>
-              <ul className="ba-list">
-                <li><span className="icon">✓</span> Automatic 24/7 monitoring — zero effort</li>
-                <li><span className="icon">✓</span> Every relevant post caught in real time</li>
-                <li><span className="icon">✓</span> Alerts within minutes — reply first</li>
-                <li><span className="icon">✓</span> AI scores 1–10 so you focus on hot leads</li>
-                <li><span className="icon">✓</span> UTM tracking proves ROI per reply</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PAIN + HOW */}
-      <section className="sec ph" id="how">
+      {/* PROBLEM */}
+      <section className="sec problem-s" id="problem">
         <div className="ctn">
           <div className="ph-top rv">
             <div className="slbl red">The problem</div>
-            <div className="stl">Right now, someone is asking Reddit<br />for an alternative to your competitor</div>
-            <p className="sdsc">They&apos;ll get 30 replies in 2 hours. None will be from you — because you didn&apos;t know the post existed.</p>
+            <div className="stl">97% of Reddit posts are noise.<br />The 3% that matter? You&apos;re missing them.</div>
+            <p className="sdsc">Every day, real buyers ask Reddit for tools like yours. By the time you see the post, your competitors already replied.</p>
             <div className="pain-g">
-              <div className="pain-c"><div className="pain-n">2.5M+</div><h3>&quot;Best tool for...&quot; posts/month</h3><p>People declaring buying intent — begging to be sold to.</p></div>
-              <div className="pain-c"><div className="pain-n">73%</div><h3>Go unanswered by companies</h3><p>First reply wins. Most companies show up too late.</p></div>
-              <div className="pain-c"><div className="pain-n">$0.18</div><h3>CPC vs $8+ on LinkedIn</h3><p>One reply beats a $500 ad campaign.</p></div>
-            </div>
-          </div>
-          <div className="flow-arr rv">↓</div>
-          <div className="how-f">
-            <div className="how-l">
-              <div className="slbl green rv">The solution</div>
-              <div className="stl rv">3 minutes to set up.<br />Leads while you sleep.</div>
-              <p className="sdsc rv">Tell SubHuntr what you sell. We monitor Reddit 24/7 and alert you instantly.</p>
-            </div>
-            <div className="how-r">
-              <div className="step rv"><div className="step-n">01</div><h3>Paste your URL — we figure out the rest</h3><p>Auto-detects your product, suggests competitors. No forms, no config.</p><span className="step-tag">~30s</span></div>
-              <div className="step rv"><div className="step-n">02</div><h3>Pick your hunting grounds</h3><p>High-intent keywords + target subreddits. We suggest both.</p><span className="step-tag">~1 min</span></div>
-              <div className="step rv"><div className="step-n">03</div><h3>Get alerted. Reply first. Close.</h3><p>Score 7+? Instant alert via email, Slack, or Discord. Pick a template, post — done.</p><span className="step-tag">Every 2–15 min</span></div>
+              <div className="pain-c"><div className="pain-n">2.5M+</div><h3>Buying-intent posts per month</h3><p>People literally asking to be sold to.</p></div>
+              <div className="pain-c"><div className="pain-n">73%</div><h3>Go unanswered by the right companies</h3><p>First reply wins. Most show up too late.</p></div>
+              <div className="pain-c"><div className="pain-n">$0.18</div><h3>Effective CPC vs $8+ on LinkedIn Ads</h3><p>One Reddit reply beats a $500 ad campaign.</p></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* HOW IT WORKS */}
+      <section className="sec how-s" id="how">
+        <div className="ctn">
+          <div className="how-hd rv">
+            <div className="slbl green">How it works</div>
+            <div className="stl">3 minutes to set up.<br />Leads while you sleep.</div>
+            <p className="sdsc">Tell SubHuntr what you sell. We monitor Reddit and alert you instantly.</p>
+          </div>
+          <div className="how-grid">
+            <div className="step-card rv"><div className="step-num">01</div><h3>Paste your URL — we figure out the rest</h3><p>Auto-detects your product, suggests competitors. No forms, no config.</p><span className="step-tag">~30s</span></div>
+            <div className="step-card rv"><div className="step-num">02</div><h3>Pick your hunting grounds</h3><p>High-intent keywords + target subreddits. We suggest both.</p><span className="step-tag">~1 min</span></div>
+            <div className="step-card rv"><div className="step-num">03</div><h3>Get alerted. Reply first. Close.</h3><p>Score 7+? Instant alert via email, Slack, or Discord. Pick a template, post — done.</p><span className="step-tag">Every 2–15 min</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES — bento grid */}
       <section className="sec feat-s" id="features">
         <div className="ctn">
           <div className="feat-hd">
             <div className="slbl green rv">Features</div>
-            <div className="stl rv">Built to make Reddit<br />your unfair advantage</div>
+            <div className="stl rv">Built to make Reddit<br />your #1 acquisition channel</div>
             <p className="sdsc rv">No bots. No fake upvotes. Just speed, scoring, and templates that convert.</p>
           </div>
-          <div className="feat-g rv">
-            <div className="ft w"><div className="ft-ico">📡</div><h3>Real-time monitoring</h3><p>Scans every 2–15 min. Reddit official API + RSS fallback.</p><span className="ft-tag">Core</span></div>
-            <div className="ft"><div className="ft-ico">🧠</div><h3>AI intent scoring</h3><p>Every post scored 1–10. Filter for 7+ to find ready buyers.</p><span className="ft-tag">Core</span></div>
-            <div className="ft"><div className="ft-ico">📝</div><h3>52+ reply templates</h3><p>Alternative, Reco, Story, Advice. Auto-fills your product info.</p><span className="ft-tag">Core</span></div>
-            <div className="ft"><div className="ft-ico">🔔</div><h3>Alerts everywhere</h3><p>Email, Slack, Discord, webhooks. Score thresholds per channel.</p><span className="ft-tag">Growth+</span></div>
-            <div className="ft"><div className="ft-ico">📊</div><h3>Analytics + competitor intel</h3><p>UTM tracking. Reddit CPC vs ads. Competitor sentiment — strike when users complain.</p><span className="ft-tag">Growth+</span></div>
+          <div className="bento-grid rv">
+            <div className="bento-card bento-large">
+              <h3>AI Intent Scoring</h3>
+              <p>Every post scored 1-10. Filter for 7+ to find ready buyers instantly. No manual reading, no guessing.</p>
+              <span className="bento-tag">Core</span>
+            </div>
+            <div className="bento-card">
+              <h3>52+ Reply Templates</h3>
+              <p>Alternative, Recommendation, Story, Advice. Auto-fills your product info.</p>
+              <span className="bento-tag">Core</span>
+            </div>
+            <div className="bento-card">
+              <h3>Auto-scan every 1-6h</h3>
+              <p>Set your frequency per plan. Get email digests when high-intent leads drop.</p>
+              <span className="bento-tag">All plans</span>
+            </div>
+            <div className="bento-card">
+              <h3>Real-time Alerts</h3>
+              <p>Email, Slack, Discord, webhooks. Set score thresholds per channel.</p>
+              <span className="bento-tag">Growth+</span>
+            </div>
+            <div className="bento-card">
+              <h3>Competitor Tracking</h3>
+              <p>Monitor when users complain about rivals. Strike at the perfect moment.</p>
+              <span className="bento-tag">Growth+</span>
+            </div>
           </div>
         </div>
       </section>
@@ -342,25 +311,21 @@ export function LandingPage() {
       <section className="sec proof" id="proof">
         <div className="ctn">
           <div className="proof-hd">
-            <div className="slbl green rv">Proof</div>
-            <div className="stl rv">They replied first. They closed.</div>
-            <p className="sdsc rv">Real results from early access users.</p>
+            <div className="slbl green rv">Real results</div>
+            <div className="stl rv">Numbers don&apos;t lie</div>
           </div>
-          <div className="tg">
-            <div className="tc rv">
-              <div className="tc-res">3 customers</div><div className="tc-rl">In the first 7 days</div>
-              <div className="tc-txt">&quot;I used to spend 30 min every morning manually searching Reddit. SubHuntr replaced all of that. Closed 3 paying users in week one.&quot;</div>
-              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Founder of a B2B CRM</div><div className="tc-ro">Early access user</div></div></div>
+          <div className="real-data rv">
+            <div className="rd-card">
+              <div className="rd-num">336</div>
+              <div className="rd-desc">Posts scanned across 14 subreddits in one session</div>
             </div>
-            <div className="tc rv">
-              <div className="tc-res">12x cheaper</div><div className="tc-rl">Than Google Ads CPA</div>
-              <div className="tc-txt">&quot;CPA from Reddit: $6.40. Google Ads: $78. We shifted 40% of our paid budget to SubHuntr.&quot;</div>
-              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Head of Growth at a SaaS startup</div><div className="tc-ro">Early access user</div></div></div>
+            <div className="rd-card">
+              <div className="rd-num">11</div>
+              <div className="rd-desc">High-intent leads found (score 7+) — 3% hit rate</div>
             </div>
-            <div className="tc rv">
-              <div className="tc-res">47 leads/wk</div><div className="tc-rl">High-intent (score 7+)</div>
-              <div className="tc-txt">&quot;Every time someone complains about Intercom, I get an alert. Like having a sales rep on Reddit 24/7.&quot;</div>
-              <div className="tc-a"><div className="tc-av" style={{ background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" fill="#52525b" viewBox="0 0 16 16"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg></div><div><div className="tc-nm">Solo founder, developer tools</div><div className="tc-ro">Early access user</div></div></div>
+            <div className="rd-card">
+              <div className="rd-num">&lt;30s</div>
+              <div className="rd-desc">Average scan time for 40 keyword-subreddit combinations</div>
             </div>
           </div>
           <div className="comp-hd rv">
@@ -508,28 +473,34 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ — split layout */}
       <section className="sec faq" id="faq">
         <div className="ctn">
-          <div className="faq-hd">
-            <div className="slbl green rv">FAQ</div>
-            <div className="stl rv">Quick answers</div>
-          </div>
-          <div className="faq-list">
-            {[
-              { q: 'Does SubHuntr post on Reddit for me?', a: 'No. We find and score posts. You reply using our 52+ templates. Authentic replies convert better and won\'t get your account banned.' },
-              { q: 'Does this violate Reddit\'s Terms of Service?', a: 'No. We use Reddit\'s official API and public RSS feeds. We never automate posting, voting, or any action on your behalf.' },
-              { q: 'What\'s included in the free trial?', a: 'Full access for 7 days. Credit card required. Cancel before the trial ends — you won\'t be charged.' },
-              { q: 'How is this different from Launch Club?', a: 'Launch Club ($199-499/mo) uses fake accounts and vote manipulation. SubHuntr is self-service, ethical, and starts at $29/mo.' },
-            ].map((faq, i) => (
-              <div key={i} className={`faq-i${openFaq === i ? ' open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                <div className="faq-q">
-                  <span>{faq.q}</span>
-                  <svg className="faq-ch" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6l4 4 4-4" /></svg>
-                </div>
-                <div className="faq-a">{faq.a}</div>
+          <div className="faq-split">
+            <div className="faq-left">
+              <div className="slbl green rv">FAQ</div>
+              <div className="stl rv">Quick answers</div>
+              <p className="sdsc rv" style={{ marginTop: 16 }}>Still have questions?</p>
+              <a href="mailto:contact@subhuntr.com" className="rv" style={{ color: 'var(--a)', fontSize: '.88rem', fontWeight: 600, marginTop: 4, display: 'inline-block' }}>contact@subhuntr.com</a>
+            </div>
+            <div className="faq-right">
+              <div className="faq-list">
+                {[
+                  { q: 'Does SubHuntr post on Reddit for me?', a: 'No. We find and score posts. You reply using our 52+ templates. Authentic replies convert better and won\'t get your account banned.' },
+                  { q: 'Does this violate Reddit\'s Terms of Service?', a: 'No. We use Reddit\'s official API and public RSS feeds. We never automate posting, voting, or any action on your behalf.' },
+                  { q: 'What\'s included in the free trial?', a: 'Full access for 7 days. Credit card required. Cancel before the trial ends — you won\'t be charged.' },
+                  { q: 'How is this different from Launch Club?', a: 'Launch Club ($199-499/mo) uses fake accounts and vote manipulation. SubHuntr is self-service, ethical, and starts at $29/mo.' },
+                ].map((faq, i) => (
+                  <div key={i} className={`faq-i${openFaq === i ? ' open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                    <div className="faq-q">
+                      <span>{faq.q}</span>
+                      <svg className="faq-ch" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6l4 4 4-4" /></svg>
+                    </div>
+                    <div className="faq-a">{faq.a}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -538,24 +509,14 @@ export function LandingPage() {
       <section className="final">
         <div className="final-gl"></div>
         <div className="ctn">
-          <h2 className="rv">While you read this page,<br /><span className="gr">12 people asked Reddit for your product.</span></h2>
-          <p className="rv">Stop letting competitors answer first.</p>
+          <h2 className="rv">Your competitors are already on Reddit.<br />Are you?</h2>
+          <p className="rv">GummySearch shut down in November 2025. 2,000+ founders lost their Reddit monitoring tool. SubHuntr is the replacement.</p>
           <Link href="/signup" className="btn-p rv" style={{ padding: '13px 32px', fontSize: '.95rem' }}>
             Start hunting — 7 days free{' '}
             <svg className="arrow" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
           </Link>
-          <div className="final-urg rv"><strong>GummySearch</strong> shut down Nov 2025. Their users need a new tool. Be ready.</div>
         </div>
       </section>
-
-      {/* SOCIAL PROOF BANNER */}
-      {!spDismissed && (
-        <div className={`sp-banner${spVisible ? ' show' : ''}`}>
-          <span className="sp-dot"></span>
-          <span>Monitoring <span className="sp-num">2.5M+</span> Reddit posts monthly</span>
-          <button className="sp-close" onClick={() => setSpDismissed(true)} aria-label="Close">×</button>
-        </div>
-      )}
 
       {/* FOOTER */}
       <footer>
