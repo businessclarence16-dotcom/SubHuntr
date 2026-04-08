@@ -76,8 +76,8 @@
 .landing .hero-desc strong{color:var(--t);font-weight:600}
 
 .landing .hero-act{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0;animation:landingFadeInUp .8s var(--e) .5s forwards}
-.landing .btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;padding:17px 32px;border-radius:10px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:all .2s;box-shadow:0 0 30px var(--gl2),0 4px 12px rgba(0,0,0,.3)}
-.landing .btn-p:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 0 40px var(--gl3),0 8px 24px rgba(0,0,0,.3)}
+.landing .btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;padding:15px 32px;border-radius:12px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:all .2s ease;box-shadow:0 0 30px rgba(29,158,117,0.15),0 4px 12px rgba(0,0,0,0.3)}
+.landing .btn-p:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 0 40px rgba(29,158,117,0.25),0 6px 16px rgba(0,0,0,0.4)}
 .landing .btn-p .arrow{transition:transform .2s}
 .landing .btn-p:hover .arrow{transform:translateX(3px)}
 .landing .btn-g{display:inline-flex;align-items:center;gap:8px;color:var(--t2);padding:17px 28px;border-radius:10px;font-weight:500;font-size:.92rem;border:1px solid var(--brd);background:transparent;cursor:pointer;transition:all .2s}
@@ -141,18 +141,20 @@
 
 /* ── SHARED ── */
 .landing .sec{padding:96px 0}
-.landing .slbl{font-family:var(--m);font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:18px;font-weight:500}
-.landing .slbl.green{color:var(--a)}.landing .slbl.red{color:var(--red)}
-.landing .stl{font-size:clamp(1.7rem,3.5vw,2.4rem);font-weight:800;letter-spacing:-.035em;line-height:1.15;margin-bottom:14px}
+.landing .slbl{display:inline-block;font-family:var(--f);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:6px 14px;border-radius:20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)}
+.landing .slbl.green{color:var(--a);background:rgba(29,158,117,0.08);border-color:rgba(29,158,117,0.15)}
+.landing .slbl.red{color:var(--red);background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15)}
+.landing .stl{font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:800;letter-spacing:-.035em;line-height:1.15;margin-top:16px;margin-bottom:14px;color:var(--t)}
 .landing .sdsc{color:var(--t2);font-size:1rem;line-height:1.7}
 
 /* ── PROBLEM ── */
-.landing .problem-s{border-top:1px solid var(--brd)}
+.landing .problem-s{border-top:1px solid var(--brd);position:relative}
+.landing .problem-s::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:1px;background:rgba(29,158,117,0.3)}
 .landing .ph-top{text-align:center;margin-bottom:0}
 .landing .ph-top .sdsc{max-width:600px;margin:0 auto}
 .landing .pain-g{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
-.landing .pain-c{background:var(--card);padding:36px 28px;border:1px solid var(--brd);border-radius:14px;text-align:left;transition:all .3s}
-.landing .pain-c:hover{background:var(--card2);border-color:var(--brd2);transform:translateY(-2px)}
+.landing .pain-c{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;text-align:left;transition:border-color 0.3s ease,transform .25s var(--e)}
+.landing .pain-c:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .pain-n{font-size:2rem;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:10px;color:var(--a);font-family:var(--m)}
 .landing .pain-c h3{font-size:.92rem;font-weight:700;margin-bottom:6px;color:var(--t)}
 .landing .pain-c p{font-size:.82rem;color:var(--t2);line-height:1.55}
@@ -162,8 +164,8 @@
 .landing .how-hd{text-align:center;margin-bottom:56px}
 .landing .how-hd .sdsc{max-width:520px;margin:0 auto}
 .landing .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.landing .step-card{padding:36px 32px;border:1px solid var(--brd);border-radius:14px;background:var(--card);transition:all .3s;position:relative;overflow:hidden}
-.landing .step-card:hover{border-color:var(--brd2);background:var(--card2);transform:translateY(-2px)}
+.landing .step-card{padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;background:#131316;transition:border-color 0.3s ease,transform .25s var(--e);position:relative;overflow:hidden}
+.landing .step-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .step-num{position:absolute;top:18px;right:24px;font-family:var(--m);font-size:3rem;font-weight:800;color:var(--a);opacity:.18;line-height:1;letter-spacing:-.04em}
 .landing .step-card h3{font-size:1rem;font-weight:700;margin-bottom:8px;padding-right:60px;color:var(--t)}
 .landing .step-card p{font-size:.85rem;color:var(--t2);line-height:1.6;margin-bottom:14px}
@@ -174,9 +176,10 @@
 .landing .feat-hd{text-align:center;margin-bottom:56px}
 .landing .feat-hd .sdsc{max-width:520px;margin:0 auto}
 .landing .bento-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.landing .bento-card{background:var(--card);padding:32px;border:1px solid var(--brd);border-radius:14px;transition:all .3s;position:relative}
-.landing .bento-card:hover{background:var(--card2);border-color:var(--brd2);transform:translateY(-2px)}
-.landing .bento-card.bento-large,.landing .bento-grid .bento-card:first-child{grid-column:span 2}
+.landing .bento-card{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;transition:border-color 0.3s ease,transform .25s var(--e);position:relative}
+.landing .bento-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
+.landing .bento-card.bento-large,.landing .bento-grid .bento-card:first-child{grid-column:span 2;background:linear-gradient(135deg,#131316 0%,#0f1a16 100%);border-color:rgba(29,158,117,0.1)}
+.landing .bento-card.bento-large:hover,.landing .bento-grid .bento-card:first-child:hover{border-color:rgba(29,158,117,0.25)}
 .landing .bento-card h3{font-size:1rem;font-weight:700;margin-bottom:8px;color:var(--t)}
 .landing .bento-card p{font-size:.88rem;color:var(--t2);line-height:1.6;margin-bottom:14px}
 .landing .bento-tag{display:inline-block;font-family:var(--m);font-size:.62rem;color:var(--a);background:rgba(29,158,117,0.1);padding:4px 9px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
@@ -185,8 +188,8 @@
 .landing .proof{border-top:1px solid var(--brd)}
 .landing .proof-hd{text-align:center;margin-bottom:48px}
 .landing .real-data{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px}
-.landing .rd-card{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:36px 28px;text-align:center;transition:all .3s}
-.landing .rd-card:hover{border-color:var(--brd2);transform:translateY(-2px)}
+.landing .rd-card{background:#131316;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:32px;text-align:center;transition:border-color 0.3s ease,transform .25s var(--e)}
+.landing .rd-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .rd-num{font-family:var(--m);font-size:2.5rem;font-weight:800;color:var(--a);letter-spacing:-.04em;line-height:1;margin-bottom:14px}
 .landing .rd-desc{font-size:.88rem;color:var(--t);line-height:1.55}
 
@@ -267,19 +270,22 @@
 .landing .faq-right{flex:1}
 .landing .faq-hd{text-align:center;margin-bottom:36px}
 .landing .faq-list{margin:0}
-.landing .faq-i{border-bottom:1px solid var(--brd);cursor:pointer}
-.landing .faq-q{padding:16px 0;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;transition:color .2s}
+.landing .faq-i{border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:8px;padding:20px 24px;cursor:pointer;transition:border-color 0.2s ease;background:#131316}
+.landing .faq-i:hover{border-color:rgba(255,255,255,0.1)}
+.landing .faq-i.open{border-color:rgba(29,158,117,0.15)}
+.landing .faq-q{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem;transition:color .2s;color:var(--t)}
 .landing .faq-i:hover .faq-q{color:var(--a)}
 .landing .faq-ch{transition:transform .3s var(--e);color:var(--t3);flex-shrink:0}
-.landing .faq-i.open .faq-ch{transform:rotate(180deg)}
+.landing .faq-i.open .faq-ch{transform:rotate(180deg);color:var(--a)}
 .landing .faq-a{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s var(--e),padding .4s var(--e),opacity .3s var(--e);color:var(--t2);font-size:.85rem;line-height:1.7}
-.landing .faq-i.open .faq-a{max-height:300px;padding-bottom:16px;opacity:1}
+.landing .faq-i.open .faq-a{max-height:300px;padding-top:14px;opacity:1}
 
 /* ── FINAL CTA ── */
-.landing .final{padding:96px 0;text-align:center;position:relative;overflow:hidden}
-.landing .final-gl{position:absolute;width:600px;height:300px;background:radial-gradient(ellipse,var(--gl2),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
-.landing .final .ctn{position:relative}
-.landing .final h2{font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:800;letter-spacing:-.035em;margin-bottom:14px}
+.landing .final{padding:96px 0;text-align:center;position:relative;overflow:hidden;background:#131316;border-top:1px solid var(--brd)}
+.landing .final::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(29,158,117,0.08) 0%,transparent 70%);pointer-events:none}
+.landing .final-gl{display:none}
+.landing .final .ctn{position:relative;z-index:1}
+.landing .final h2{font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:800;letter-spacing:-.035em;margin-bottom:14px;color:var(--t)}
 .landing .final>p,.landing .final .ctn>p{color:var(--t2);font-size:1rem;margin-bottom:28px}
 .landing .final-urg{margin-top:18px;font-size:.75rem;color:var(--t3)}
 .landing .final-urg strong{color:var(--red)}
@@ -299,10 +305,8 @@
 /* Pricing cards lift */
 .landing .plan{transition:all .25s var(--e)}
 .landing .plan:hover{transform:translateY(-2px);border-color:var(--brd2)}
-/* CTA buttons glow + scale */
-.landing .btn-p{transition:all .2s var(--e)}
-.landing .btn-p:hover{transform:translateY(-1px) scale(1.02)}
-.landing .btn-p:active{transform:scale(0.98)}
+/* CTA buttons scale */
+.landing .btn-p:active{transform:translateY(0) scale(0.98)}
 .landing .nav-cta{transition:all .2s var(--e)}
 .landing .nav-cta:hover{transform:scale(1.02);box-shadow:0 0 24px var(--gl2)}
 .landing .nav-cta:active{transform:scale(0.98)}
