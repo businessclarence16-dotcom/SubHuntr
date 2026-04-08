@@ -157,11 +157,11 @@ export function LandingPage() {
         <div className="hero-bg"><div className="hero-grad"></div><div className="hero-lines"></div></div>
         <div className="ctn">
           <div className="urg"><span className="dot"></span> <span>GummySearch is dead. Their 2,000+ users need a new home.</span></div>
-          <h1>Find buyers on Reddit.<br />Reply before your competitors.</h1>
-          <p className="hero-desc">SubHuntr scans Reddit 24/7 and scores every post by buying intent (1-10). Get alerted when hot leads drop. Reply with proven templates. Close before anyone else sees the post.</p>
+          <h1>Find <span className="gr">buyers</span> on Reddit.<br />Reply before your competitors.</h1>
+          <p className="hero-desc">SubHuntr scans Reddit 24/7 and scores every post by buying intent (1 to 10). Get alerted when hot leads drop. Reply with proven templates. Close before anyone else sees the post.</p>
           <div className="hero-act">
             <Link href="/signup" className="btn-p">
-              Start hunting leads — free for 7 days{' '}
+              Start hunting leads, free for 7 days{' '}
               <svg className="arrow" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 7.5h9M8.5 3.5l4 4-4 4" /></svg>
             </Link>
             <a href="#how" className="btn-g" onClick={(e) => handleSmoothScroll(e, 'how')}>See it in action</a>
@@ -169,6 +169,7 @@ export function LandingPage() {
           <div className="hero-stats">
             <strong>336</strong> posts scanned · <strong>11</strong> high-intent leads found · <strong>&lt;30s</strong> per scan
           </div>
+          <p className="hero-trust">Credit card required · Cancel anytime · Setup in 3 minutes</p>
 
           {/* DEMO */}
           <div className="hero-demo" ref={demoRef}>
@@ -249,6 +250,24 @@ export function LandingPage() {
               <div className="pain-c"><div className="pain-n">73%</div><h3>Go unanswered by the right companies</h3><p>First reply wins. Most show up too late.</p></div>
               <div className="pain-c"><div className="pain-n">$0.18</div><h3>Effective CPC vs $8+ on LinkedIn Ads</h3><p>One Reddit reply beats a $500 ad campaign.</p></div>
             </div>
+            <div className="ba-mini">
+              <div className="ba-mini-col ba-mini-without">
+                <div className="ba-mini-label">Without SubHuntr</div>
+                <ul>
+                  <li><span className="ba-ic ba-ic-x">✗</span>You spend 2 hours scrolling Reddit and find nothing</li>
+                  <li><span className="ba-ic ba-ic-x">✗</span>You miss 90% of high intent posts</li>
+                  <li><span className="ba-ic ba-ic-x">✗</span>Someone else replies first and gets the customer</li>
+                </ul>
+              </div>
+              <div className="ba-mini-col ba-mini-with">
+                <div className="ba-mini-label">With SubHuntr</div>
+                <ul>
+                  <li><span className="ba-ic ba-ic-v">✓</span>AI scans 14+ subreddits in under 30 seconds</li>
+                  <li><span className="ba-ic ba-ic-v">✓</span>Every post scored 1 to 10 so you skip the noise</li>
+                  <li><span className="ba-ic ba-ic-v">✓</span>You get notified and reply with proven templates</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -262,9 +281,9 @@ export function LandingPage() {
             <p className="sdsc">Tell SubHuntr what you sell. We monitor Reddit and alert you instantly.</p>
           </div>
           <div className="how-grid">
-            <div className="step-card rv"><div className="step-num">01</div><h3>Paste your URL — we figure out the rest</h3><p>Auto-detects your product, suggests competitors. No forms, no config.</p><span className="step-tag">~30s</span></div>
-            <div className="step-card rv"><div className="step-num">02</div><h3>Pick your hunting grounds</h3><p>High-intent keywords + target subreddits. We suggest both.</p><span className="step-tag">~1 min</span></div>
-            <div className="step-card rv"><div className="step-num">03</div><h3>Get alerted. Reply first. Close.</h3><p>Score 7+? Instant alert via email, Slack, or Discord. Pick a template, post — done.</p><span className="step-tag">Every 2–15 min</span></div>
+            <div className="step-card rv"><div className="step-num">01</div><h3>Paste your URL, we figure out the rest</h3><p>Auto-detects your product, suggests competitors. No forms, no config.</p><span className="step-tag">~30s</span></div>
+            <div className="step-card rv"><div className="step-num">02</div><h3>Pick your hunting grounds</h3><p>High-intent keywords and target subreddits. We suggest both.</p><span className="step-tag">~1 min</span></div>
+            <div className="step-card rv"><div className="step-num">03</div><h3>Get alerted. Reply first. Close.</h3><p>Score 7+? Instant alert via email, Slack, or Discord. Pick a template, post, done.</p><span className="step-tag">Every 2 to 15 min</span></div>
           </div>
         </div>
       </section>
@@ -321,16 +340,20 @@ export function LandingPage() {
             </div>
             <div className="rd-card">
               <div className="rd-num">11</div>
-              <div className="rd-desc">High-intent leads found (score 7+) — 3% hit rate</div>
+              <div className="rd-desc">High-intent leads found (score 7+). A 3% hit rate.</div>
             </div>
             <div className="rd-card">
               <div className="rd-num">&lt;30s</div>
               <div className="rd-desc">Average scan time for 40 keyword-subreddit combinations</div>
             </div>
           </div>
+          <p className="founder-note rv">
+            &ldquo;I built SubHuntr because I was spending hours on Reddit looking for people who needed my SaaS. Now it takes 30 seconds.&rdquo;
+            <span className="founder-name">Loris, solo founder</span>
+          </p>
           <div className="comp-hd rv">
             <h3 className="comp-title">How we compare to alternatives</h3>
-            <p className="comp-sub">Transparent comparison — we show their strengths too.</p>
+            <p className="comp-sub">Transparent comparison. We show their strengths too.</p>
           </div>
 
           {/* Desktop table */}
@@ -423,7 +446,7 @@ export function LandingPage() {
               <div className="ps">Teams serious about Reddit leads</div>
               <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[1]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[1]}/year · <span style={{ color: '#1D9E75' }}>2 months free</span></div>
-              <Link href="/signup?plan=growth" className="pc">Subscribe — ${prices[1]}/mo</Link>
+              <Link href="/signup?plan=growth" className="pc">Subscribe at ${prices[1]}/mo</Link>
               <ul className="pl">
                 <li>25 keywords</li>
                 <li>75 subreddits</li>
@@ -442,7 +465,7 @@ export function LandingPage() {
               <div className="ps">Agencies managing multiple clients</div>
               <div className="pp"><span className="c">$</span><span className={`pv${priceSwitching ? ' switching' : ''}`}>{prices[2]}</span><span className="p">/mo</span></div>
               <div className="pa" style={{ display: annual ? 'block' : 'none' }}>Billed {ANNUAL_TOTALS[2]}/year · <span style={{ color: '#1D9E75' }}>2 months free</span></div>
-              <Link href="/signup?plan=agency" className="pc">Subscribe — ${prices[2]}/mo</Link>
+              <Link href="/signup?plan=agency" className="pc">Subscribe at ${prices[2]}/mo</Link>
               <ul className="pl">
                 <li>Unlimited keywords</li>
                 <li>Unlimited subreddits</li>
@@ -488,8 +511,12 @@ export function LandingPage() {
                 {[
                   { q: 'Does SubHuntr post on Reddit for me?', a: 'No. We find and score posts. You reply using our 52+ templates. Authentic replies convert better and won\'t get your account banned.' },
                   { q: 'Does this violate Reddit\'s Terms of Service?', a: 'No. We use Reddit\'s official API and public RSS feeds. We never automate posting, voting, or any action on your behalf.' },
-                  { q: 'What\'s included in the free trial?', a: 'Full access for 7 days. Credit card required. Cancel before the trial ends — you won\'t be charged.' },
-                  { q: 'How is this different from Launch Club?', a: 'Launch Club ($199-499/mo) uses fake accounts and vote manipulation. SubHuntr is self-service, ethical, and starts at $29/mo.' },
+                  { q: 'What\'s included in the free trial?', a: 'Full access for 7 days. Credit card required. Cancel before the trial ends and you won\'t be charged.' },
+                  { q: 'How is this different from Launch Club?', a: 'Launch Club ($199 to $499/mo) uses fake accounts and vote manipulation. SubHuntr is self-service, ethical, and starts at $29/mo.' },
+                  { q: 'How does SubHuntr score posts from 1 to 10?', a: 'The AI analyzes each post for purchase intent signals like comparison requests, alternative searches, budget mentions, and urgency markers. A post asking "best CRM for small teams under $50/mo" scores 8 or 9. A generic discussion about CRM trends scores 2 or 3.' },
+                  { q: 'Do I need a Reddit account to use SubHuntr?', a: 'No. SubHuntr scans Reddit independently. You only need a Reddit account if you want to reply to the leads you find, which you do directly on Reddit.' },
+                  { q: 'Can I cancel anytime?', a: 'Yes. Cancel from your billing page in one click. No questions, no retention flows, no hidden fees. If you cancel mid cycle, you keep access until the end of your billing period.' },
+                  { q: 'What happens after the 7 day free trial?', a: 'If SubHuntr is not for you, just cancel before day 7 and you will not be charged. Otherwise your Starter plan activates automatically at $29/mo.' },
                 ].map((faq, i) => (
                   <div key={i} className={`faq-i${openFaq === i ? ' open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                     <div className="faq-q">
@@ -511,7 +538,7 @@ export function LandingPage() {
           <h2 className="rv">Your competitors are already on Reddit.<br />Are you?</h2>
           <p className="rv">GummySearch shut down in November 2025. 2,000+ founders lost their Reddit monitoring tool. SubHuntr is the replacement.</p>
           <Link href="/signup" className="btn-p rv">
-            Start hunting — 7 days free{' '}
+            Start hunting, 7 days free{' '}
             <svg className="arrow" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
           </Link>
         </div>
