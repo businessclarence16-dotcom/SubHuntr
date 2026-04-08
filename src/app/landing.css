@@ -12,6 +12,7 @@
   --f:'Plus Jakarta Sans',-apple-system,sans-serif;
   --m:'JetBrains Mono',monospace;
   --e:cubic-bezier(0.16,1,0.3,1);
+  --t-fast:150ms;--t-base:200ms;--t-slow:300ms;
   font-family:var(--f);background:var(--bg);color:var(--t);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
 .landing ::selection{background:var(--a);color:#fff}
@@ -36,7 +37,6 @@
 .landing .mob-tog.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
 /* Mobile overlay — hidden on desktop, animated on mobile via @media */
 .landing .mob-overlay{display:none}
-.landing .mob-overlay .mob-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--t);cursor:pointer;padding:8px;font-size:1.5rem;z-index:99}
 /* Staggered link animations */
 .landing .mob-overlay .mob-link,.landing .mob-overlay .mob-login,.landing .mob-overlay .mob-cta{opacity:0;transform:translateY(-8px);transition:color .15s,opacity .25s ease,transform .25s ease}
 .landing .mob-overlay.open .mob-link,.landing .mob-overlay.open .mob-login,.landing .mob-overlay.open .mob-cta{opacity:1;transform:translateY(0)}
@@ -70,17 +70,15 @@
 @keyframes landingPing{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.5);opacity:0}}
 
 .landing h1{font-size:clamp(2.4rem,5.5vw,4rem);font-weight:800;line-height:1.06;letter-spacing:-.04em;margin-bottom:20px;opacity:0;animation:landingFadeInUp .8s var(--e) .2s forwards}
-.landing h1 .gr{background:linear-gradient(135deg,var(--a),#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
-.landing .hero-desc{font-size:1.05rem;color:var(--t2);max-width:520px;margin:0 auto 32px;line-height:1.7;opacity:0;animation:landingFadeInUp .8s var(--e) .35s forwards}
-.landing .hero-desc strong{color:var(--t);font-weight:600}
+.landing .hero-desc{font-size:1.05rem;color:var(--t2);max-width:540px;margin:0 auto 32px;line-height:1.7;opacity:0;animation:landingFadeInUp .8s var(--e) .35s forwards}
 
 .landing .hero-act{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0;animation:landingFadeInUp .8s var(--e) .5s forwards}
-.landing .btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;padding:15px 32px;border-radius:12px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:all .2s ease;box-shadow:0 0 30px rgba(29,158,117,0.15),0 4px 12px rgba(0,0,0,0.3)}
+.landing .btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;padding:15px 32px;border-radius:12px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;transition:all var(--t-base) ease;box-shadow:0 0 30px rgba(29,158,117,0.15),0 4px 12px rgba(0,0,0,0.3)}
 .landing .btn-p:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 0 40px rgba(29,158,117,0.25),0 6px 16px rgba(0,0,0,0.4)}
 .landing .btn-p .arrow{transition:transform .2s}
 .landing .btn-p:hover .arrow{transform:translateX(3px)}
-.landing .btn-g{display:inline-flex;align-items:center;gap:8px;color:var(--t2);padding:17px 28px;border-radius:10px;font-weight:500;font-size:.92rem;border:1px solid var(--brd);background:transparent;cursor:pointer;transition:all .2s}
+.landing .btn-g{display:inline-flex;align-items:center;gap:8px;color:var(--t2);padding:15px 28px;border-radius:12px;font-weight:500;font-size:.92rem;border:1px solid var(--brd);background:transparent;cursor:pointer;transition:all var(--t-base) ease}
 .landing .btn-g:hover{color:var(--t);border-color:var(--brd2);background:rgba(255,255,255,0.02)}
 
 .landing .hero-stats{margin-top:24px;font-size:.78rem;color:var(--t2);opacity:0;animation:landingFadeIn .8s var(--e) .7s forwards}
@@ -141,10 +139,10 @@
 
 /* ── SHARED ── */
 .landing .sec{padding:96px 0}
-.landing .slbl{display:inline-block;font-family:var(--f);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:6px 14px;border-radius:20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)}
+.landing .slbl{display:inline-block;font-family:var(--f);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:6px 14px;border-radius:20px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)}
 .landing .slbl.green{color:var(--a);background:rgba(29,158,117,0.08);border-color:rgba(29,158,117,0.15)}
 .landing .slbl.red{color:var(--red);background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.15)}
-.landing .stl{font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:800;letter-spacing:-.035em;line-height:1.15;margin-top:16px;margin-bottom:14px;color:var(--t)}
+.landing .stl{font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:800;letter-spacing:-.035em;line-height:1.15;margin-top:0;margin-bottom:14px;color:var(--t)}
 .landing .sdsc{color:var(--t2);font-size:1rem;line-height:1.7}
 
 /* ── PROBLEM ── */
@@ -153,7 +151,7 @@
 .landing .ph-top{text-align:center;margin-bottom:0}
 .landing .ph-top .sdsc{max-width:600px;margin:0 auto}
 .landing .pain-g{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
-.landing .pain-c{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;text-align:left;transition:border-color 0.3s ease,transform .25s var(--e)}
+.landing .pain-c{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;text-align:left;transition:border-color var(--t-slow) ease,transform var(--t-base) var(--e)}
 .landing .pain-c:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .pain-n{font-size:2rem;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:10px;color:var(--a);font-family:var(--m)}
 .landing .pain-c h3{font-size:.92rem;font-weight:700;margin-bottom:6px;color:var(--t)}
@@ -164,7 +162,7 @@
 .landing .how-hd{text-align:center;margin-bottom:56px}
 .landing .how-hd .sdsc{max-width:520px;margin:0 auto}
 .landing .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.landing .step-card{padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;background:#131316;transition:border-color 0.3s ease,transform .25s var(--e);position:relative;overflow:hidden}
+.landing .step-card{padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;background:#131316;transition:border-color var(--t-slow) ease,transform var(--t-base) var(--e);position:relative;overflow:hidden}
 .landing .step-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .step-num{position:absolute;top:18px;right:24px;font-family:var(--m);font-size:3rem;font-weight:800;color:var(--a);opacity:.18;line-height:1;letter-spacing:-.04em}
 .landing .step-card h3{font-size:1rem;font-weight:700;margin-bottom:8px;padding-right:60px;color:var(--t)}
@@ -176,7 +174,7 @@
 .landing .feat-hd{text-align:center;margin-bottom:56px}
 .landing .feat-hd .sdsc{max-width:520px;margin:0 auto}
 .landing .bento-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.landing .bento-card{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;transition:border-color 0.3s ease,transform .25s var(--e);position:relative}
+.landing .bento-card{background:#131316;padding:32px;border:1px solid rgba(255,255,255,0.06);border-radius:14px;transition:border-color var(--t-slow) ease,transform var(--t-base) var(--e);position:relative}
 .landing .bento-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .bento-card.bento-large,.landing .bento-grid .bento-card:first-child{grid-column:span 2;background:linear-gradient(135deg,#131316 0%,#0f1a16 100%);border-color:rgba(29,158,117,0.1)}
 .landing .bento-card.bento-large:hover,.landing .bento-grid .bento-card:first-child:hover{border-color:rgba(29,158,117,0.25)}
@@ -188,14 +186,14 @@
 .landing .proof{border-top:1px solid var(--brd)}
 .landing .proof-hd{text-align:center;margin-bottom:48px}
 .landing .real-data{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px}
-.landing .rd-card{background:#131316;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:32px;text-align:center;transition:border-color 0.3s ease,transform .25s var(--e)}
+.landing .rd-card{background:#131316;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:32px;text-align:center;transition:border-color var(--t-slow) ease,transform var(--t-base) var(--e)}
 .landing .rd-card:hover{border-color:rgba(29,158,117,0.15);transform:translateY(-2px)}
 .landing .rd-num{font-family:var(--m);font-size:2.5rem;font-weight:800;color:var(--a);letter-spacing:-.04em;line-height:1;margin-bottom:14px}
 .landing .rd-desc{font-size:.88rem;color:var(--t);line-height:1.55}
 
 /* Comparison — header */
 .landing .comp-hd{text-align:center;margin-bottom:32px}
-.landing .comp-title{font-size:1.3rem;font-weight:800;color:var(--t1);letter-spacing:-0.02em;margin-bottom:6px}
+.landing .comp-title{font-size:1.3rem;font-weight:800;color:var(--t);letter-spacing:-0.02em;margin-bottom:6px}
 .landing .comp-sub{font-size:.82rem;color:var(--t3)}
 /* Comparison — shared */
 .landing .comp-y{color:#34d399;font-weight:600}
@@ -209,7 +207,7 @@
 .landing .comp-tbl thead tr{background:rgba(255,255,255,0.03)}
 .landing .comp-tbl th{padding:18px 24px;text-align:center;vertical-align:top;border-bottom:1px solid var(--brd)}
 .landing .comp-th-feat{text-align:left;width:30%}
-.landing .comp-th-name{display:block;font-size:.9rem;font-weight:700;color:var(--t1)}
+.landing .comp-th-name{display:block;font-size:.9rem;font-weight:700;color:var(--t)}
 .landing .comp-th-badge{display:block;font-size:.58rem;color:var(--a);font-weight:600;margin-top:3px;letter-spacing:.03em}
 .landing .comp-tbl td{padding:14px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);color:var(--t2);font-weight:500;transition:background .2s}
 .landing .comp-tbl td:first-child{text-align:left;color:var(--t3);font-weight:500}
@@ -222,7 +220,7 @@
 .landing .comp-mc{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:24px;margin-bottom:16px}
 .landing .comp-mc.comp-mc-hl{border-color:var(--a);box-shadow:0 0 24px rgba(29,158,117,0.1)}
 .landing .comp-mc-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.landing .comp-mc-name{font-size:1rem;font-weight:700;color:var(--t1)}
+.landing .comp-mc-name{font-size:1rem;font-weight:700;color:var(--t)}
 .landing .comp-mc-badge{font-size:.58rem;color:var(--a);font-weight:600;background:var(--gl);padding:3px 8px;border-radius:20px}
 .landing .comp-mc-price{font-size:.9rem;font-weight:700;margin-bottom:16px}
 .landing .comp-mc-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
@@ -267,7 +265,10 @@
 .landing .faq{border-top:1px solid var(--brd)}
 .landing .faq-split{display:flex;gap:60px;align-items:flex-start;max-width:1120px;margin:0 auto}
 .landing .faq-left{flex:0 0 35%;position:sticky;top:100px}
-.landing .faq-right{flex:1}
+.landing .faq-left-sub{color:var(--t2);font-size:1rem;line-height:1.7;margin-top:18px}
+.landing .faq-left-email{color:var(--a);font-size:.88rem;font-weight:600;margin-top:6px;display:inline-block;transition:color var(--t-fast)}
+.landing .faq-left-email:hover{color:#34d399}
+.landing .faq-right{flex:1;min-width:0}
 .landing .faq-hd{text-align:center;margin-bottom:36px}
 .landing .faq-list{margin:0}
 .landing .faq-i{border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:8px;padding:20px 24px;cursor:pointer;transition:border-color 0.2s ease;background:#131316}
@@ -283,7 +284,6 @@
 /* ── FINAL CTA ── */
 .landing .final{padding:96px 0;text-align:center;position:relative;overflow:hidden;background:#131316;border-top:1px solid var(--brd)}
 .landing .final::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(29,158,117,0.08) 0%,transparent 70%);pointer-events:none}
-.landing .final-gl{display:none}
 .landing .final .ctn{position:relative;z-index:1}
 .landing .final h2{font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:800;letter-spacing:-.035em;margin-bottom:14px;color:var(--t)}
 .landing .final>p,.landing .final .ctn>p{color:var(--t2);font-size:1rem;margin-bottom:28px}
@@ -299,22 +299,19 @@
 .landing .fc{font-size:.75rem;color:var(--t3)}
 
 /* ── HOVER POLISH ── */
-/* Feature cards lift */
-.landing .ft{transition:background .3s,transform .25s var(--e),border-color .25s ease}
-.landing .ft:hover{transform:translateY(-2px);border-color:var(--brd2)}
 /* Pricing cards lift */
-.landing .plan{transition:all .25s var(--e)}
+.landing .plan{transition:border-color var(--t-base) ease,transform var(--t-base) var(--e)}
 .landing .plan:hover{transform:translateY(-2px);border-color:var(--brd2)}
 /* CTA buttons scale */
 .landing .btn-p:active{transform:translateY(0) scale(0.98)}
-.landing .nav-cta{transition:all .2s var(--e)}
+.landing .nav-cta{transition:all var(--t-base) var(--e)}
 .landing .nav-cta:hover{transform:scale(1.02);box-shadow:0 0 24px var(--gl2)}
 .landing .nav-cta:active{transform:scale(0.98)}
-.landing .pc{transition:all .2s var(--e)}
+.landing .pc{transition:all var(--t-base) var(--e)}
 .landing .pc:hover{transform:scale(1.02)}
 .landing .pc:active{transform:scale(0.98)}
 /* Pricing value fade on toggle */
-.landing .pv{display:inline-block;transition:opacity .15s ease,transform .15s ease}
+.landing .pv{display:inline-block;transition:opacity var(--t-fast) ease,transform var(--t-fast) ease}
 .landing .pv.switching{opacity:0;transform:translateY(4px)}
 
 /* ── REVEAL ── */

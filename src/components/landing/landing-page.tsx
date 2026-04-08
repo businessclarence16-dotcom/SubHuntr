@@ -480,8 +480,8 @@ export function LandingPage() {
             <div className="faq-left">
               <div className="slbl green rv">FAQ</div>
               <div className="stl rv">Quick answers</div>
-              <p className="sdsc rv" style={{ marginTop: 16 }}>Still have questions?</p>
-              <a href="mailto:contact@subhuntr.com" className="rv" style={{ color: 'var(--a)', fontSize: '.88rem', fontWeight: 600, marginTop: 4, display: 'inline-block' }}>contact@subhuntr.com</a>
+              <p className="faq-left-sub rv">Still have questions?</p>
+              <a href="mailto:contact@subhuntr.com" className="faq-left-email rv">contact@subhuntr.com</a>
             </div>
             <div className="faq-right">
               <div className="faq-list">
@@ -507,11 +507,10 @@ export function LandingPage() {
 
       {/* FINAL CTA */}
       <section className="final">
-        <div className="final-gl"></div>
         <div className="ctn">
           <h2 className="rv">Your competitors are already on Reddit.<br />Are you?</h2>
           <p className="rv">GummySearch shut down in November 2025. 2,000+ founders lost their Reddit monitoring tool. SubHuntr is the replacement.</p>
-          <Link href="/signup" className="btn-p rv" style={{ padding: '13px 32px', fontSize: '.95rem' }}>
+          <Link href="/signup" className="btn-p rv">
             Start hunting — 7 days free{' '}
             <svg className="arrow" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
           </Link>
