@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createProject, addKeywords, addSubreddits } from '@/app/(auth)/actions/onboarding'
 import { trackEvent } from '@/lib/posthog'
+import { LogoIcon } from '@/components/layout/logo-icon'
 import {
   X,
   Plus,
@@ -442,9 +443,7 @@ function OnboardingContent() {
     <div className="flex min-h-screen flex-col">
       {/* Top bar with logo */}
       <div className="flex items-center gap-2 p-6">
-        <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
-          <div className="h-1.5 w-1.5 rounded-full bg-white" />
-        </div>
+        <LogoIcon size={24} />
         <span
           className="text-[0.95rem] font-bold text-[#fafafa]"
           style={{ letterSpacing: '-0.02em' }}

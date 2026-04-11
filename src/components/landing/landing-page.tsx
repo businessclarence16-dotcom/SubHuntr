@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { LogoIcon } from '@/components/layout/logo-icon'
 import '@/app/landing.css'
 
 const DEMO_POSTS = [
@@ -120,7 +121,7 @@ export function LandingPage() {
       <nav>
         <div className="ctn">
           <Link href="/" className="logo">
-            <div className="logo-mark"></div> SubHuntr
+            <LogoIcon size={24} full /> SubHuntr
           </Link>
           <ul className="nav-links">
             <li><a href="#how" onClick={(e) => handleSmoothScroll(e, 'how')}>How it works</a></li>
@@ -549,7 +550,7 @@ export function LandingPage() {
         <div className="ctn">
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <Link href="/" className="logo" style={{ fontSize: '.85rem' }}>
-              <div className="logo-mark" style={{ width: '20px', height: '20px' }}></div> SubHuntr
+              <LogoIcon size={20} /> SubHuntr
             </Link>
             <ul className="fl">
               <li><Link href="/privacy">Privacy</Link></li>

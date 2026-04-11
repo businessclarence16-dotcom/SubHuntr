@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { LogoutButton } from '@/components/layout/logout-button'
+import { LogoIcon } from '@/components/layout/logo-icon'
 import {
   Menu,
   Rss,
@@ -61,9 +62,7 @@ export function MobileNav() {
           className="mb-6 flex items-center gap-2 px-3 text-[0.95rem] font-bold tracking-tight text-[#fafafa]"
           onClick={() => setOpen(false)}
         >
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1D9E75]">
-            <div className="h-1.5 w-1.5 rounded-full bg-white" />
-          </div>
+          <LogoIcon size={24} />
           SubHuntr
         </Link>
 

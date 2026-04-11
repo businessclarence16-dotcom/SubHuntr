@@ -23,8 +23,6 @@
 .landing nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(9,9,11,0.6);backdrop-filter:blur(24px) saturate(1.2);border-bottom:1px solid var(--brd);padding:20px 0}
 .landing nav .ctn{display:flex;align-items:center;justify-content:space-between;height:56px}
 .landing .logo{font-size:.95rem;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
-.landing .logo-mark{width:24px;height:24px;background:var(--a);border-radius:6px;display:flex;align-items:center;justify-content:center}
-.landing .logo-mark::after{content:'';width:6px;height:6px;background:#fff;border-radius:50%}
 .landing .nav-links{display:flex;align-items:center;gap:4px;list-style:none}
 .landing .nav-links a{padding:6px 14px;font-size:.82rem;color:var(--t2);border-radius:6px;transition:all .15s;font-weight:500}
 .landing .nav-links a:hover{color:var(--t);background:rgba(255,255,255,0.04)}

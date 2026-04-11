@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from '@/components/layout/logout-button'
+import { LogoIcon } from '@/components/layout/logo-icon'
 import {
   Rss,
   Search,
@@ -67,9 +68,7 @@ export function Sidebar() {
     <aside className="flex h-screen w-56 flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#0f0f12] p-4">
       {/* Logo */}
       <Link href="/feed" className="mb-2 flex items-center gap-2 px-3 text-[0.95rem] font-bold tracking-tight text-[#fafafa]">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1D9E75]">
-          <div className="h-1.5 w-1.5 rounded-full bg-white" />
-        </div>
+        <LogoIcon size={24} />
         SubHuntr
       </Link>
 

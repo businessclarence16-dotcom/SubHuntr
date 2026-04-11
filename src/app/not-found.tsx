@@ -1,15 +1,14 @@
 // Custom 404 page — dark theme matching the rest of the site
 
 import Link from 'next/link'
+import { LogoIcon } from '@/components/layout/logo-icon'
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 text-center">
       {/* Logo */}
       <div className="mb-12 flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
-          <div className="h-1.5 w-1.5 rounded-full bg-white" />
-        </div>
+        <LogoIcon size={24} full />
         <span
           className="text-[0.95rem] font-bold text-[#fafafa]"
           style={{ letterSpacing: '-0.02em' }}

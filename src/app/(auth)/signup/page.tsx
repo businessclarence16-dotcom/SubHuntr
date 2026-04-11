@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { signup, type AuthState } from '@/app/(auth)/actions/auth'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { trackEvent } from '@/lib/posthog'
+import { LogoIcon } from '@/components/layout/logo-icon'
 
 const initialState: AuthState = { error: null }
 
@@ -48,9 +49,7 @@ function SignupContent() {
         <div className="stagger-children w-full max-w-md">
           {/* Logo */}
           <div className="mb-8 flex items-center justify-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
-              <div className="h-1.5 w-1.5 rounded-full bg-white" />
-            </div>
+            <LogoIcon size={24} />
             <span
               className="text-[0.95rem] font-bold text-[#fafafa]"
               style={{ letterSpacing: '-0.02em' }}
@@ -106,9 +105,7 @@ function SignupContent() {
       <div className="stagger-children w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#1D9E75]">
-            <div className="h-1.5 w-1.5 rounded-full bg-white" />
-          </div>
+          <LogoIcon size={24} />
           <span
             className="text-[0.95rem] font-bold text-[#fafafa]"
             style={{ letterSpacing: '-0.02em' }}
