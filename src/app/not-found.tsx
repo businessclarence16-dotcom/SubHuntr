@@ -8,7 +8,7 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#09090b] px-4 text-center">
       {/* Logo */}
       <div className="mb-12 flex items-center gap-2">
-        <LogoIcon size={24} full />
+        <LogoIcon size={24} />
         <span
           className="text-[0.95rem] font-bold text-[#fafafa]"
           style={{ letterSpacing: '-0.02em' }}

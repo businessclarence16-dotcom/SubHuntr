@@ -1,14 +1,11 @@
-// SubHuntr logo icon — stylized S in a rounded green square
-// Use size prop to control dimensions (default 24px)
-// Set full=true for the crosshair detail (landing/large contexts only)
+// SubHuntr logo icon — geometric S in a rounded green square
 
 interface LogoIconProps {
   size?: number
-  full?: boolean
   className?: string
 }
 
-export function LogoIcon({ size = 24, full = false, className }: LogoIconProps) {
+export function LogoIcon({ size = 24, className }: LogoIconProps) {
   return (
     <svg
       viewBox="0 0 512 512"
@@ -17,21 +14,11 @@ export function LogoIcon({ size = 24, full = false, className }: LogoIconProps) 
       className={className}
       aria-hidden="true"
     >
-      <rect width="512" height="512" rx="96" fill="#1D9E75" />
+      <rect width="512" height="512" rx="80" fill="#1D9E75" />
       <path
-        d="M310 148c0 0-40-18-82-8s-72 48-72 90c0 38 28 58 56 66s56 18 56 48c0 28-24 44-56 44s-64-14-80-32"
-        fill="none"
-        stroke="#fafafa"
-        strokeWidth="48"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M310 156c-14-12-38-20-66-20c-50 0-84 28-84 68c0 36 24 52 68 64c40 10 56 22 56 44c0 26-22 42-54 42c-30 0-56-12-72-30l-28 32c22 24 58 40 98 40c56 0 92-30 92-76c0-40-26-56-72-68c-38-10-52-20-52-40c0-22 18-36 46-36c24 0 44 8 58 20l28-32z"
+        fill="#fafafa"
       />
-      {full && (
-        <>
-          <circle cx="340" cy="164" r="18" fill="none" stroke="#fafafa" strokeWidth="4" opacity="0.35" />
-          <circle cx="340" cy="164" r="4" fill="#fafafa" opacity="0.5" />
-        </>
-      )}
     </svg>
   )
 }

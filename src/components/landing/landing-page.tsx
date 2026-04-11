@@ -121,7 +121,7 @@ export function LandingPage() {
       <nav>
         <div className="ctn">
           <Link href="/" className="logo">
-            <LogoIcon size={24} full /> SubHuntr
+            <LogoIcon size={24} /> SubHuntr
           </Link>
           <ul className="nav-links">
             <li><a href="#how" onClick={(e) => handleSmoothScroll(e, 'how')}>How it works</a></li>
