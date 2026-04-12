@@ -56,6 +56,7 @@ export async function runScan(
   let totalFetched = 0
   let totalDuplicates = 0
   let totalErrors = 0
+  let scanFailed = false
 
   try {
     for (const sub of subreddits) {
@@ -123,22 +124,26 @@ export async function runScan(
         }
       }
     }
-
-    await supabase
-      .from('scans')
-      .update({ status: 'completed', posts_found: postsFound, completed_at: new Date().toISOString() })
-      .eq('id', scan?.id)
-
-    console.log(`${logPrefix} ========== SCAN COMPLETE — ${postsFound} new posts ==========`)
   } catch (error) {
+    scanFailed = true
+    console.error(`${logPrefix} Fatal error:`, error)
+  } finally {
+    // ALWAYS update scan status, even on crash
     if (scan?.id) {
       await supabase
         .from('scans')
-        .update({ status: 'failed', completed_at: new Date().toISOString() })
+        .update({
+          status: scanFailed ? 'failed' : 'completed',
+          posts_found: postsFound,
+          completed_at: new Date().toISOString(),
+        })
         .eq('id', scan.id)
     }
-    console.error(`${logPrefix} Fatal error:`, error)
-    throw error
+    console.log(`${logPrefix} ========== SCAN ${scanFailed ? 'FAILED' : 'COMPLETE'} — ${postsFound} new posts ==========`)
+  }
+
+  if (scanFailed) {
+    throw new Error('Scan failed')
   }
 
   return { scanId: scan?.id ?? null, postsFound, totalFetched, totalDuplicates, totalErrors, mode, newPosts: allNewPosts }

@@ -1,4 +1,4 @@
-// API Route pour scanner Reddit — cherche des posts par keywords dans les subreddits configurés
+// API Route pour scanner Reddit
 // GET  /api/reddit/scan?projectId=xxx → cooldown status
 // POST /api/reddit/scan { projectId: string } → lance un scan
 
@@ -7,6 +7,29 @@ import { createClient } from '@/lib/supabase/server'
 import { SCAN_COOLDOWN_SECONDS } from '@/constants/plans'
 import { Plan } from '@/types'
 import { runScan } from '@/lib/reddit/scan'
+import { SupabaseClient } from '@supabase/supabase-js'
+
+const STUCK_SCAN_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
+
+// Auto-expire scans stuck in "running" for more than 5 minutes
+async function expireStuckScans(supabase: SupabaseClient, projectId: string) {
+  const cutoff = new Date(Date.now() - STUCK_SCAN_TIMEOUT_MS).toISOString()
+  const { data: stuck } = await supabase
+    .from('scans')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('status', 'running')
+    .lt('started_at', cutoff)
+
+  if (stuck && stuck.length > 0) {
+    const ids = stuck.map((s) => s.id)
+    await supabase
+      .from('scans')
+      .update({ status: 'failed', completed_at: new Date().toISOString() })
+      .in('id', ids)
+    console.log(`[Scan] Auto-expired ${ids.length} stuck scan(s): ${ids.join(', ')}`)
+  }
+}
 
 // GET — check cooldown status for a project
 export async function GET(request: NextRequest) {
@@ -16,6 +39,9 @@ export async function GET(request: NextRequest) {
 
   const projectId = request.nextUrl.searchParams.get('projectId')
   if (!projectId) return NextResponse.json({ error: 'projectId required' }, { status: 400 })
+
+  // Auto-expire stuck scans before checking cooldown
+  await expireStuckScans(supabase, projectId)
 
   const { data: profile } = await supabase
     .from('users')
@@ -82,7 +108,10 @@ export async function POST(request: NextRequest) {
   const userPlan = (profile?.plan ?? 'starter') as Plan
   const cooldownSeconds = SCAN_COOLDOWN_SECONDS[userPlan] ?? 900
 
-  // Block if a scan is already running
+  // Auto-expire stuck scans before checking
+  await expireStuckScans(supabase, projectId)
+
+  // Block if a scan is still genuinely running (started < 5 min ago)
   const { data: runningScan } = await supabase
     .from('scans')
     .select('id')
